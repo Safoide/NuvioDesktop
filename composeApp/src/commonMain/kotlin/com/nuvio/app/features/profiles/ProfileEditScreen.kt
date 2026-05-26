@@ -56,6 +56,7 @@ import com.nuvio.app.core.ui.NuvioScreenHeader
 import com.nuvio.app.core.ui.NuvioStatusModal
 import com.nuvio.app.core.ui.NuvioSurfaceCard
 import com.nuvio.app.core.ui.rememberSizedImageRequest
+import com.nuvio.app.features.home.components.CollectionCardRemoteImage
 import kotlinx.coroutines.launch
 import nuvio.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
@@ -410,18 +411,12 @@ private fun ProfileIdentityCard(
                     contentAlignment = Alignment.Center,
                 ) {
                     if (customAvatarUrl != null) {
-                        val avatarRequest = rememberSizedImageRequest(
+                        CollectionCardRemoteImage(
                             imageUrl = customAvatarUrl,
-                            width = 88.dp,
-                            height = 88.dp,
-                            memoryCacheKeyPrefix = "profile-edit-avatar",
-                        )
-                        AsyncImage(
-                            model = avatarRequest ?: customAvatarUrl,
                             contentDescription = name,
                             modifier = Modifier.size(88.dp).clip(CircleShape),
                             contentScale = ContentScale.Crop,
-                            filterQuality = NuvioImageFilterQuality,
+                            animateIfPossible = true,
                         )
                     } else if (selectedAvatar != null) {
                         val avatarUrl = avatarStorageUrl(selectedAvatar.storagePath)
@@ -545,7 +540,6 @@ private fun AvatarChoiceItem(
             contentDescription = avatar.displayName,
             modifier = Modifier.fillMaxSize().clip(CircleShape),
             contentScale = ContentScale.Crop,
-            filterQuality = NuvioImageFilterQuality,
         )
 
         if (isSelected) {
