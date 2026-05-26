@@ -379,7 +379,7 @@ private fun ProfileAvatarCard(
                     CollectionCardRemoteImage(
                         imageUrl = avatarImageUrl,
                         contentDescription = avatarItem?.displayName ?: profile.name,
-                        modifier = Modifier.size(100.dp).clip(CircleShape),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         animateIfPossible = true,
                     )
