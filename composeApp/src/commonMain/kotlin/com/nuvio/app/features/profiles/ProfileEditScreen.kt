@@ -429,7 +429,7 @@ private fun ProfileIdentityCard(
                         AsyncImage(
                             model = avatarRequest ?: avatarUrl,
                             contentDescription = selectedAvatar.displayName,
-                            modifier = Modifier.size(88.dp).clip(CircleShape),
+                            modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             filterQuality = NuvioImageFilterQuality,
                         )
