@@ -61,6 +61,7 @@ import com.nuvio.app.core.auth.AuthRepository
 import com.nuvio.app.core.auth.AuthState
 import com.nuvio.app.core.ui.NuvioImageFilterQuality
 import com.nuvio.app.core.ui.rememberSizedImageRequest
+import com.nuvio.app.features.home.components.CollectionCardRemoteImage
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nuvio.composeapp.generated.resources.*
@@ -375,18 +376,12 @@ private fun ProfileAvatarCard(
                 contentAlignment = Alignment.Center,
             ) {
                 if (avatarImageUrl != null) {
-                    val avatarRequest = rememberSizedImageRequest(
+                    CollectionCardRemoteImage(
                         imageUrl = avatarImageUrl,
-                        width = 100.dp,
-                        height = 100.dp,
-                        memoryCacheKeyPrefix = "profile-selection-avatar",
-                    )
-                    AsyncImage(
-                        model = avatarRequest ?: avatarImageUrl,
                         contentDescription = avatarItem?.displayName ?: profile.name,
                         modifier = Modifier.size(100.dp).clip(CircleShape),
                         contentScale = ContentScale.Crop,
-                        filterQuality = NuvioImageFilterQuality,
+                        animateIfPossible = true,
                     )
                 } else if (profile.name.isNotBlank()) {
                     Text(
