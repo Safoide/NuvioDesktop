@@ -414,7 +414,7 @@ private fun ProfileIdentityCard(
                         CollectionCardRemoteImage(
                             imageUrl = customAvatarUrl,
                             contentDescription = name,
-                            modifier = Modifier.size(88.dp).clip(CircleShape),
+                            modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop,
                             animateIfPossible = true,
                         )
@@ -429,7 +429,7 @@ private fun ProfileIdentityCard(
                         AsyncImage(
                             model = avatarRequest ?: avatarUrl,
                             contentDescription = selectedAvatar.displayName,
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier.size(88.dp).clip(CircleShape),
                             contentScale = ContentScale.Crop,
                             filterQuality = NuvioImageFilterQuality,
                         )
