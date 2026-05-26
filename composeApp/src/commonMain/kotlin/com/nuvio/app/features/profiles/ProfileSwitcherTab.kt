@@ -70,6 +70,7 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil3.compose.AsyncImage
+import com.nuvio.app.features.home.components.CollectionCardRemoteImage
 import com.nuvio.app.core.ui.NuvioImageFilterQuality
 import com.nuvio.app.core.ui.desktopContextMenuPointer
 import com.nuvio.app.core.ui.rememberSizedImageRequest
@@ -205,17 +206,6 @@ fun ProfileSwitcherTab(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = onClick,
-            )
-            .desktopContextMenuPointer(
-                onContextMenu =
-                    if (profiles.isNotEmpty()) {
-                        {
-                            performProfileHoldHaptic()
-                            showPopup = true
-                        }
-                    } else {
-                        null
-                    },
             )
             .pointerInput(profiles) {
                 detectDragGesturesAfterLongPress(
@@ -519,18 +509,12 @@ private fun PopupProfileBubble(
                 contentAlignment = Alignment.Center,
             ) {
                 if (avatarImageUrl != null) {
-                    val avatarRequest = rememberSizedImageRequest(
+                    CollectionCardRemoteImage(
                         imageUrl = avatarImageUrl,
-                        width = 48.dp,
-                        height = 48.dp,
-                        memoryCacheKeyPrefix = "profile-switcher-avatar",
-                    )
-                    AsyncImage(
-                        model = avatarRequest ?: avatarImageUrl,
                         contentDescription = profile.name,
                         modifier = Modifier.size(48.dp).clip(CircleShape),
                         contentScale = ContentScale.Crop,
-                        filterQuality = NuvioImageFilterQuality,
+                        animateIfPossible = true,
                     )
                 } else if (profile.name.isNotBlank()) {
                     Text(
@@ -822,13 +806,12 @@ fun ActiveProfileMiniAvatar(
     val borderColor = if (selected) {
         MaterialTheme.colorScheme.primary
     } else {
-        avatarColor.copy(alpha = 0.0f)
+        avatarColor.copy(alpha = 0.5f)
     }
 
     Box(
         modifier = Modifier
             .size(size.dp)
-            .border(2.dp, borderColor, CircleShape)
             .clip(CircleShape)
             .background(
                 if (avatarImageUrl != null) {
@@ -836,22 +819,17 @@ fun ActiveProfileMiniAvatar(
                 } else {
                     avatarColor.copy(alpha = 0.15f)
                 },
-            ),
+            )
+            .border(1.5.dp, borderColor, CircleShape),
         contentAlignment = Alignment.Center,
     ) {
         if (avatarImageUrl != null) {
-            val avatarRequest = rememberSizedImageRequest(
+            CollectionCardRemoteImage(
                 imageUrl = avatarImageUrl,
-                width = size.dp,
-                height = size.dp,
-                memoryCacheKeyPrefix = "profile-nav-avatar",
-            )
-            AsyncImage(
-                model = avatarRequest ?: avatarImageUrl,
                 contentDescription = profile.name,
                 modifier = Modifier.size(size.dp).clip(CircleShape),
                 contentScale = ContentScale.Crop,
-                filterQuality = NuvioImageFilterQuality,
+                animateIfPossible = true,
             )
         } else if (profile.name.isNotBlank()) {
             Text(
