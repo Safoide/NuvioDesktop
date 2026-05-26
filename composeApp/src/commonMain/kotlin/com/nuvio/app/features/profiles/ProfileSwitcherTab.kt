@@ -512,7 +512,7 @@ private fun PopupProfileBubble(
                     CollectionCardRemoteImage(
                         imageUrl = avatarImageUrl,
                         contentDescription = profile.name,
-                        modifier = Modifier.size(48.dp).clip(CircleShape),
+                        modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
                         animateIfPossible = true,
                     )
@@ -827,7 +827,7 @@ fun ActiveProfileMiniAvatar(
             CollectionCardRemoteImage(
                 imageUrl = avatarImageUrl,
                 contentDescription = profile.name,
-                modifier = Modifier.size(size.dp).clip(CircleShape),
+                modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
                 animateIfPossible = true,
             )
