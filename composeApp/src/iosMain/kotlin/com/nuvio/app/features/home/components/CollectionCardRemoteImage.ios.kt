@@ -99,6 +99,7 @@ internal actual fun CollectionCardRemoteImage(
 
     UIKitView(
         modifier = modifier,
+        interactive = false,
         factory = {
             UIImageView().apply {
                 contentMode = UIViewContentMode.UIViewContentModeScaleAspectFill
