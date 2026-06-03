@@ -57,7 +57,7 @@ internal object DesktopBorderlessFullscreenController {
     fun toggle(window: ComposeWindow) {
         DesktopRuntimeLog.info(
             "borderlessFullscreen: toggle requested fullscreen=${isFullscreen(window)} " +
-                "placement=${window.placement} extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
+                    "placement=${window.placement} extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
         )
         if (isFullscreen(window)) {
             exit(window)
@@ -88,9 +88,9 @@ internal object DesktopBorderlessFullscreenController {
         val targetBounds = native.currentMonitorBounds(handle) ?: window.currentScreenBounds()
         DesktopRuntimeLog.info(
             "borderlessFullscreen: enter request hwnd=$handle placement=${window.placement} " +
-                "extendedState=${window.extendedState} bounds=${previousBounds.shortLog()} " +
-                "nativeBounds=${previousNativeBounds?.shortLog() ?: "none"} " +
-                "target=${targetBounds.shortLog()} style=${currentStyle.hexStyle()} exStyle=${currentExStyle.hexStyle()}",
+                    "extendedState=${window.extendedState} bounds=${previousBounds.shortLog()} " +
+                    "nativeBounds=${previousNativeBounds?.shortLog() ?: "none"} " +
+                    "target=${targetBounds.shortLog()} style=${currentStyle.hexStyle()} exStyle=${currentExStyle.hexStyle()}",
         )
 
         snapshot = FullscreenSnapshot(
@@ -103,7 +103,7 @@ internal object DesktopBorderlessFullscreenController {
             exStyle = currentExStyle,
             mode = FullscreenMode.WindowsBorderless,
         )
-
+        bumpRevision()
         runCatching {
             window.placement = WindowPlacement.Floating
             window.extendedState = window.extendedState and Frame.MAXIMIZED_BOTH.inv()
@@ -113,19 +113,20 @@ internal object DesktopBorderlessFullscreenController {
                 GWL_EXSTYLE,
                 currentExStyle and (WS_EX_DLGMODALFRAME or WS_EX_WINDOWEDGE or WS_EX_CLIENTEDGE or WS_EX_STATICEDGE).inv(),
             )
-            native.applyFrameBounds(handle, targetBounds, HWND_TOPMOST)
+            native.applyFrameBounds(handle, targetBounds, null)
             window.toFront()
             window.requestFocus()
+            Thread.sleep(16)
             window.repaint()
+            window.bounds = targetBounds  // forzar bounds desde Compose también
         }.onSuccess {
             val appliedStyle = native.getWindowLongPtr(handle, GWL_STYLE)
             val appliedExStyle = native.getWindowLongPtr(handle, GWL_EXSTYLE)
             DesktopRuntimeLog.info(
                 "borderlessFullscreen: entered bounds=${targetBounds.shortLog()} " +
-                    "previousPlacement=${snapshot?.placement} style=${appliedStyle.hexStyle()} " +
-                    "exStyle=${appliedExStyle.hexStyle()}",
+                        "previousPlacement=${snapshot?.placement} style=${appliedStyle.hexStyle()} " +
+                        "exStyle=${appliedExStyle.hexStyle()}",
             )
-            bumpRevision()
         }.onFailure {
             DesktopRuntimeLog.error("borderlessFullscreen: enter failed, restoring window state", it)
             restoreSnapshot(window)
@@ -137,12 +138,12 @@ internal object DesktopBorderlessFullscreenController {
         val active = snapshot
         DesktopRuntimeLog.info(
             "borderlessFullscreen: exit requested hasSnapshot=${active != null} " +
-                "placement=${window.placement} extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
+                    "placement=${window.placement} extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
         )
         if (active?.window === window) {
+            bumpRevision()
             restoreSnapshot(window)
             DesktopRuntimeLog.info("borderlessFullscreen: exited mode=${active.mode}")
-            bumpRevision()
             return
         }
 
@@ -161,8 +162,8 @@ internal object DesktopBorderlessFullscreenController {
     fun isFullscreen(window: ComposeWindow): Boolean {
         val device = window.graphicsConfiguration?.device
         return snapshot?.window === window ||
-            window.placement == WindowPlacement.Fullscreen ||
-            device?.fullScreenWindow === window
+                window.placement == WindowPlacement.Fullscreen ||
+                device?.fullScreenWindow === window
     }
 
     private fun enterComposeFullscreen(window: ComposeWindow) {
@@ -188,13 +189,13 @@ internal object DesktopBorderlessFullscreenController {
         val handle = resolveHandle(window)
         val native = user32
         val restoreBoundsFirst = active.placement != WindowPlacement.Maximized &&
-            active.extendedState and Frame.MAXIMIZED_BOTH == 0
+                active.extendedState and Frame.MAXIMIZED_BOTH == 0
         DesktopRuntimeLog.info(
             "borderlessFullscreen: restore snapshot mode=${active.mode} hwnd=$handle " +
-                "restoreBoundsFirst=$restoreBoundsFirst savedPlacement=${active.placement} " +
-                "savedExtendedState=${active.extendedState} savedBounds=${active.bounds.shortLog()} " +
-                "savedNativeBounds=${active.nativeBounds?.shortLog() ?: "none"} " +
-                "savedStyle=${active.style?.hexStyle() ?: "none"} savedExStyle=${active.exStyle?.hexStyle() ?: "none"}",
+                    "restoreBoundsFirst=$restoreBoundsFirst savedPlacement=${active.placement} " +
+                    "savedExtendedState=${active.extendedState} savedBounds=${active.bounds.shortLog()} " +
+                    "savedNativeBounds=${active.nativeBounds?.shortLog() ?: "none"} " +
+                    "savedStyle=${active.style?.hexStyle() ?: "none"} savedExStyle=${active.exStyle?.hexStyle() ?: "none"}",
         )
 
         if (handle != null && native != null && active.style != null && active.exStyle != null) {
@@ -223,7 +224,7 @@ internal object DesktopBorderlessFullscreenController {
         window.repaint()
         DesktopRuntimeLog.info(
             "borderlessFullscreen: restore complete placement=${window.placement} " +
-                "extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
+                    "extendedState=${window.extendedState} bounds=${window.bounds.shortLog()}",
         )
     }
 
@@ -276,6 +277,8 @@ internal object DesktopBorderlessFullscreenController {
     }
 
     private fun User32.applyFrameBounds(handle: Pointer, bounds: Rectangle, insertAfter: Pointer?) {
+        val flags = SWP_FRAMECHANGED or SWP_SHOWWINDOW or
+                if (insertAfter == null) 0x0004 /* SWP_NOZORDER */ else SWP_NOOWNERZORDER
         SetWindowPos(
             handle,
             insertAfter,
@@ -283,7 +286,7 @@ internal object DesktopBorderlessFullscreenController {
             bounds.y,
             bounds.width,
             bounds.height,
-            SWP_NOOWNERZORDER or SWP_FRAMECHANGED or SWP_SHOWWINDOW,
+            flags,
         )
     }
 

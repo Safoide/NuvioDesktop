@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeContent
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.CircleShape
@@ -69,6 +71,7 @@ import com.nuvio.app.core.ui.appIconPainter
 import com.nuvio.app.core.ui.nuvioTypeScale
 import nuvio.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+import com.nuvio.app.core.ui.VerticalSlider
 
 @Composable
 internal fun PlayerControlsShell(
@@ -113,6 +116,8 @@ internal fun PlayerControlsShell(
     modifier: Modifier = Modifier,
 ) {
     Box(modifier = modifier.fillMaxSize()) {
+        var showVolumeSlider by remember { mutableStateOf(false) }
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -199,6 +204,10 @@ internal fun PlayerControlsShell(
                     metrics = metrics,
                     resizeMode = resizeMode,
                     volumeLevel = volumeLevel,
+                    showVolumeSlider = showVolumeSlider,
+                    onVolumeToggle = {
+                        showVolumeSlider = !showVolumeSlider
+                    },
                     onScrubChange = onScrubChange,
                     onScrubFinished = onScrubFinished,
                     onResizeModeClick = onResizeModeClick,
@@ -216,6 +225,26 @@ internal fun PlayerControlsShell(
                         .padding(horizontal = metrics.horizontalPadding)
                         .padding(bottom = metrics.sliderBottomOffset),
                 )
+            }
+
+            if (showVolumeSlider && volumeLevel != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.BottomEnd
+                ) {
+                    PlayerVolumeSlider(
+                        volumeLevel = volumeLevel,
+                        onVolumeChange = onVolumeChange,
+                        onMuteClick = onMuteClick,
+                        modifier = Modifier
+                            .align(Alignment.BottomEnd)
+                            .padding(
+                                end = metrics.horizontalPadding + 32.dp,
+                                bottom = metrics.sliderBottomOffset + 180.dp
+                            )
+                            .fillMaxHeight(0.7f)
+                    )
+                }
             }
         }
     }
@@ -516,6 +545,8 @@ private fun ProgressControls(
     metrics: PlayerLayoutMetrics,
     resizeMode: PlayerResizeMode,
     volumeLevel: PlayerAudioLevel?,
+    showVolumeSlider: Boolean,
+    onVolumeToggle: () -> Unit,
     onScrubChange: (Long) -> Unit,
     onScrubFinished: (Long) -> Unit,
     onResizeModeClick: () -> Unit,
@@ -533,111 +564,118 @@ private fun ProgressControls(
     val aspectRatioPainter = appIconPainter(AppIconResource.PlayerAspectRatio)
     val subtitlesPainter = appIconPainter(AppIconResource.PlayerSubtitles)
     val audioPainter = appIconPainter(AppIconResource.PlayerAudioFilled)
-    var showVolumeSlider by remember { mutableStateOf(false) }
 
-    Column(modifier = modifier) {
-        Slider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(metrics.sliderTouchHeight)
-                .graphicsLayer(scaleY = metrics.sliderScaleY),
-            value = displayedPositionMs.coerceIn(0L, durationMs).toFloat(),
-            onValueChange = { value -> onScrubChange(value.toLong()) },
-            onValueChangeFinished = { onScrubFinished(displayedPositionMs.coerceIn(0L, durationMs)) },
-            valueRange = 0f..durationMs.toFloat(),
-        )
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp)
-                .padding(top = 4.dp, bottom = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically,
+    Box(modifier = modifier) {
+        Column(
+            modifier = Modifier.fillMaxWidth()
         ) {
-            TimePill(text = formatPlaybackTime(displayedPositionMs), fontSize = metrics.timeSize)
-            TimePill(text = formatPlaybackTime(durationMs), fontSize = metrics.timeSize)
-        }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-        ) {
-            Surface(
-                color = Color.Black.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(24.dp),
-                modifier = Modifier.border(
-                    width = 1.dp,
-                    color = Color.White.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(24.dp),
-                ),
+            Slider(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(metrics.sliderTouchHeight)
+                    .graphicsLayer(scaleY = metrics.sliderScaleY),
+                value = displayedPositionMs.coerceIn(0L, durationMs).toFloat(),
+                onValueChange = { value -> onScrubChange(value.toLong()) },
+                onValueChangeFinished = {
+                    onScrubFinished(
+                        displayedPositionMs.coerceIn(
+                            0L,
+                            durationMs
+                        )
+                    )
+                },
+                valueRange = 0f..durationMs.toFloat(),
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp)
+                    .padding(top = 4.dp, bottom = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(2.dp),
+                TimePill(text = formatPlaybackTime(displayedPositionMs), fontSize = metrics.timeSize)
+                TimePill(text = formatPlaybackTime(durationMs), fontSize = metrics.timeSize)
+            }
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
                 ) {
-                    if (showVolumeSlider && volumeLevel != null) {
-                        PlayerVolumeSlider(
-                            volumeLevel = volumeLevel,
-                            onVolumeChange = onVolumeChange,
-                            onMuteClick = onMuteClick,
-                        )
-                    }
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
+                    Surface(
+                        color = Color.Black.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(24.dp),
+                        modifier = Modifier.border(
+                            width = 1.dp,
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(24.dp),
+                        ),
                     ) {
-                        PlayerActionPillButton(
-                            label = stringResource(resizeMode.labelRes),
-                            painter = aspectRatioPainter,
-                            onClick = onResizeModeClick,
-                        )
-                        PlayerActionPillButton(
-                            label = formatPlaybackSpeedLabel(playbackSnapshot.playbackSpeed),
-                            icon = Icons.Rounded.Speed,
-                            onClick = onSpeedClick,
-                        )
-                        if (volumeLevel != null) {
-                            PlayerActionPillButton(
-                                label = stringResource(Res.string.compose_player_volume),
-                                icon = if (volumeLevel.isMuted) {
-                                    Icons.AutoMirrored.Rounded.VolumeOff
-                                } else {
-                                    Icons.AutoMirrored.Rounded.VolumeUp
-                                },
-                                onClick = { showVolumeSlider = !showVolumeSlider },
-                            )
+                        Column(
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                PlayerActionPillButton(
+                                    label = stringResource(resizeMode.labelRes),
+                                    painter = aspectRatioPainter,
+                                    onClick = onResizeModeClick,
+                                )
+                                PlayerActionPillButton(
+                                    label = formatPlaybackSpeedLabel(playbackSnapshot.playbackSpeed),
+                                    icon = Icons.Rounded.Speed,
+                                    onClick = onSpeedClick,
+                                )
+                                if (volumeLevel != null) {
+                                    PlayerActionPillButton(
+                                        label = stringResource(Res.string.compose_player_volume),
+                                        icon = if (volumeLevel.isMuted) {
+                                            Icons.AutoMirrored.Rounded.VolumeOff
+                                        } else {
+                                            Icons.AutoMirrored.Rounded.VolumeUp
+                                        },
+                                        onClick = onVolumeToggle
+                                    )
+                                }
+                                PlayerActionPillButton(
+                                    label = stringResource(Res.string.compose_player_subs),
+                                    painter = subtitlesPainter,
+                                    onClick = onSubtitleClick,
+                                )
+                                PlayerActionPillButton(
+                                    label = stringResource(Res.string.compose_player_audio),
+                                    painter = audioPainter,
+                                    onClick = onAudioClick,
+                                )
+                                if (onSourcesClick != null) {
+                                    PlayerActionPillButton(
+                                        label = stringResource(Res.string.compose_player_sources),
+                                        icon = Icons.Rounded.SwapHoriz,
+                                        onClick = onSourcesClick,
+                                    )
+                                }
+                                if (onEpisodesClick != null) {
+                                    PlayerActionPillButton(
+                                        label = stringResource(Res.string.compose_player_episodes),
+                                        icon = Icons.Rounded.VideoLibrary,
+                                        onClick = onEpisodesClick,
+                                    )
+                                }
+                            }
+                            if (onOpenInExternalPlayer != null) {
+                                PlayerActionPillButton(
+                                    label = stringResource(Res.string.streams_open_external_player),
+                                    icon = Icons.AutoMirrored.Rounded.OpenInNew,
+                                    onClick = onOpenInExternalPlayer,
+                                )
+                            }
                         }
-                        PlayerActionPillButton(
-                            label = stringResource(Res.string.compose_player_subs),
-                            painter = subtitlesPainter,
-                            onClick = onSubtitleClick,
-                        )
-                        PlayerActionPillButton(
-                            label = stringResource(Res.string.compose_player_audio),
-                            painter = audioPainter,
-                            onClick = onAudioClick,
-                        )
-                        if (onSourcesClick != null) {
-                            PlayerActionPillButton(
-                                label = stringResource(Res.string.compose_player_sources),
-                                icon = Icons.Rounded.SwapHoriz,
-                                onClick = onSourcesClick,
-                            )
-                        }
-                        if (onEpisodesClick != null) {
-                            PlayerActionPillButton(
-                                label = stringResource(Res.string.compose_player_episodes),
-                                icon = Icons.Rounded.VideoLibrary,
-                                onClick = onEpisodesClick,
-                            )
-                        }
-                    }
-                    if (onOpenInExternalPlayer != null) {
-                        PlayerActionPillButton(
-                            label = stringResource(Res.string.streams_open_external_player),
-                            icon = Icons.AutoMirrored.Rounded.OpenInNew,
-                            onClick = onOpenInExternalPlayer,
-                        )
                     }
                 }
             }
@@ -650,40 +688,26 @@ private fun PlayerVolumeSlider(
     volumeLevel: PlayerAudioLevel,
     onVolumeChange: (Float) -> Unit,
     onMuteClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val percentage = (volumeLevel.fraction * 100f).toInt().coerceIn(0, 100)
-    Row(
-        modifier = Modifier
-            .padding(horizontal = 10.dp, vertical = 6.dp)
-            .widthIn(min = 220.dp, max = 280.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
+    Column(
+        modifier = modifier
+            .padding(bottom = 8.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Icon(
-            imageVector = if (volumeLevel.isMuted) {
-                Icons.AutoMirrored.Rounded.VolumeOff
-            } else {
-                Icons.AutoMirrored.Rounded.VolumeUp
-            },
-            contentDescription = stringResource(Res.string.compose_player_volume),
-            tint = Color.White,
-            modifier = Modifier
-                .size(22.dp)
-                .clip(CircleShape)
-                .clickable(onClick = onMuteClick),
+        Text(
+            text = "$percentage%",
+            style = MaterialTheme.nuvioTypeScale.labelSm,
+            color = Color.White,
         )
-        Slider(
+
+        VerticalSlider(
             modifier = Modifier.weight(1f),
             value = volumeLevel.fraction.coerceIn(0f, 1f),
             onValueChange = onVolumeChange,
             valueRange = 0f..1f,
-        )
-        Text(
-            text = percentage.toString(),
-            style = MaterialTheme.nuvioTypeScale.labelSm.copy(fontWeight = FontWeight.SemiBold),
-            color = Color.White,
-            modifier = Modifier.widthIn(min = 28.dp),
-            maxLines = 1,
         )
     }
 }

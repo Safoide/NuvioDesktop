@@ -126,4 +126,6 @@ internal expect object PlayerSettingsStorage {
     fun saveIosGamma(value: Int)
     fun exportToSyncPayload(): JsonObject
     fun replaceFromSyncPayload(payload: JsonObject)
+    fun loadVolume(): Float?
+    fun saveVolume(volume: Float)
 }

@@ -1082,14 +1082,17 @@ fun PlayerScreen(
         fun currentPlayerVolume(): PlayerAudioLevel? =
             playerController?.currentVolume() ?: gestureController?.currentVolume()
 
-        fun setPlayerVolume(level: Float) {
+        fun setPlayerVolume(level: Float, silent: Boolean = false) {
             val nextLevel = playerController?.setVolume(level) ?: gestureController?.setVolume(level)
             if (nextLevel != null) {
                 visibleVolumeLevel = nextLevel
                 if (!nextLevel.isMuted && nextLevel.fraction > 0.001f) {
                     lastNonMutedVolume = nextLevel.fraction
+                    PlayerSettingsRepository.setVolume(nextLevel.fraction)
                 }
-                showVolumeFeedback(nextLevel)
+                if (!silent)
+                    showVolumeFeedback(nextLevel)
+
                 revealPlayerChrome()
             }
         }
@@ -1118,10 +1121,14 @@ fun PlayerScreen(
         }
 
         LaunchedEffect(playerController, gestureController, activeSourceUrl) {
+            val savedVolume = PlayerSettingsRepository.uiState.value.volume
             val current = currentPlayerVolume()
             visibleVolumeLevel = current
             if (current != null && !current.isMuted && current.fraction > 0.001f) {
                 lastNonMutedVolume = current.fraction
+            }
+            if (savedVolume > 0.001f) {
+                setPlayerVolume(savedVolume, true)
             }
         }
 
@@ -2956,7 +2963,7 @@ fun PlayerScreen(
                     onDismiss = { skipIntervalDismissed = true },
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(start = sliderEdgePadding, bottom = overlayBottomPadding),
+                        .padding(start = sliderEdgePadding, bottom = overlayBottomPadding + 64.dp),
                 )
             }
 

@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.abs
+import kotlin.math.roundToInt
+
 
 val STREAM_AUTO_PLAY_TIMEOUT_VALUES: List<Int> = listOf(
     0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, Int.MAX_VALUE
@@ -83,6 +85,7 @@ data class PlayerSettingsUiState(
     val iosContrast: Int = 0,
     val iosSaturation: Int = 0,
     val iosGamma: Int = 0,
+    val volume: Float = 1f,
 )
 
 object PlayerSettingsRepository {
@@ -141,6 +144,8 @@ object PlayerSettingsRepository {
     private var iosContrast = 0
     private var iosSaturation = 0
     private var iosGamma = 0
+
+    private var volume = 1f
 
     fun ensureLoaded() {
         if (hasLoaded) return
@@ -204,6 +209,7 @@ object PlayerSettingsRepository {
         iosContrast = 0
         iosSaturation = 0
         iosGamma = 0
+        volume = 1f
         publish()
     }
 
@@ -327,6 +333,7 @@ object PlayerSettingsRepository {
         iosContrast = PlayerSettingsStorage.loadIosContrast() ?: 0
         iosSaturation = PlayerSettingsStorage.loadIosSaturation() ?: 0
         iosGamma = PlayerSettingsStorage.loadIosGamma() ?: 0
+        volume = PlayerSettingsStorage.loadVolume() ?: 1f
         publish()
     }
 
@@ -361,6 +368,18 @@ object PlayerSettingsRepository {
         holdToSpeedValue = normalized
         publish()
         PlayerSettingsStorage.saveHoldToSpeedValue(normalized)
+    }
+
+    fun setVolume(v: Float) {
+        ensureLoaded()
+
+        val normalized = ((v.coerceIn(0f, 2f) * 100f).roundToInt()) / 100f
+
+        if (volume == normalized) return
+
+        volume = normalized
+        publish()
+        PlayerSettingsStorage.saveVolume(normalized)
     }
 
     fun setExternalPlayerEnabled(enabled: Boolean) {
@@ -862,6 +881,7 @@ object PlayerSettingsRepository {
             iosContrast = iosContrast,
             iosSaturation = iosSaturation,
             iosGamma = iosGamma,
+            volume = volume,
         )
     }
 

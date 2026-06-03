@@ -567,6 +567,8 @@ internal actual object PlayerSettingsStorage {
     private const val iosContrastKey = "ios_contrast"
     private const val iosSaturationKey = "ios_saturation"
     private const val iosGammaKey = "ios_gamma"
+
+    private const val volumeKey = "player_volume"
     private val syncKeys = listOf(
         showLoadingOverlayKey,
         resizeModeKey,
@@ -988,6 +990,15 @@ internal actual object PlayerSettingsStorage {
 
     actual fun saveIosGamma(value: Int) {
         saveInt(iosGammaKey, value)
+    }
+
+    actual fun saveVolume(volume: Float) {
+        saveFloat(volumeKey, volume)
+    }
+
+    actual fun loadVolume(): Float? {
+        val value = loadFloat(volumeKey)
+        return value
     }
 
     actual fun exportToSyncPayload(): JsonObject = buildJsonObject {

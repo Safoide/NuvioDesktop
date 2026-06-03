@@ -1,5 +1,15 @@
 package com.nuvio.app
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.CompositionLocalProvider
@@ -273,8 +283,33 @@ fun main(args: Array<String>) {
                 LocalDesktopWindow provides window,
                 LocalUriHandler provides desktopUriHandler,
             ) {
+                val fullscreenRevision = DesktopBorderlessFullscreenController.revision
+                var showOverlay by remember { mutableStateOf(false) }
+
+                LaunchedEffect(fullscreenRevision) {
+                    if (fullscreenRevision == 0) return@LaunchedEffect
+                    showOverlay = true
+                    delay(150)
+                    showOverlay = false
+                }
+
+                val overlayAlpha by animateFloatAsState(
+                    targetValue = if (showOverlay) 1f else 0f,
+                    animationSpec = tween(
+                        durationMillis = if (showOverlay) 60 else 100,
+                    ),
+                    label = "fullscreen-fade",
+                )
+
                 Box(modifier = Modifier.fillMaxSize()) {
                     App(startupPlayerLaunch = devStreamMode?.launch)
+                    if (overlayAlpha > 0f) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black.copy(alpha = overlayAlpha)),
+                        )
+                    }
                 }
             }
         }
