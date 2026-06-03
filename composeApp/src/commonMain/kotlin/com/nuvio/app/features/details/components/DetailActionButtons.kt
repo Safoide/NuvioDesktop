@@ -103,7 +103,6 @@ fun DetailActionButtons(
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
-                                actionsExpanded = false
                                 onPlayClick()
                             },
                             onLongClick = onPlayLongClick,
@@ -153,7 +152,6 @@ fun DetailActionButtons(
                                 size = iconButtonSize,
                                 onClick = {
                                     hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    actionsExpanded = false
                                     action.onClick()
                                 },
                                 onLongClick = action.onLongClick?.let { longClick ->
