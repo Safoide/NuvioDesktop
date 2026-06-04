@@ -101,7 +101,9 @@ Set-Content -LiteralPath $issPath -Value $issContent -Encoding UTF8
 $isccPaths = @(
     "${env:ProgramFiles(x86)}\Inno Setup 6\ISCC.exe",
     "${env:ProgramFiles(x86)}\Inno Setup 5\ISCC.exe",
-    "${env:ProgramFiles}\Inno Setup 6\ISCC.exe"
+    "${env:LOCALAPPDATA}\Programs\Inno Setup 6\ISCC.exe",
+    "C:\Program Files\Inno Setup 6\ISCC.exe",
+    "C:\Users\Safoide\AppData\Local\Programs\Inno Setup 6\ISCC.exe"
 )
 
 $iscc = $null

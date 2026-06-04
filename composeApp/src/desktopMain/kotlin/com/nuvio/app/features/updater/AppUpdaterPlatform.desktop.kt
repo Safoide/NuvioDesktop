@@ -25,7 +25,7 @@ actual object AppUpdaterPlatform {
     actual val isSupported: Boolean = true
     actual val supportsAutoCheck: Boolean = true
     actual val supportsDownloadAndInstall: Boolean = true
-    actual val gitHubOwner: String = "CreepsoOff"
+    actual val gitHubOwner: String = "safoide"
     actual val gitHubRepo: String = "NuvioDesktop"
     actual val stableReleaseChannelBranch: String? = null
     actual val nightlyReleaseTag: String? = "pre"
