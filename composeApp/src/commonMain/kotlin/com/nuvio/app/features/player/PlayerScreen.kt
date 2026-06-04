@@ -28,6 +28,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -98,6 +99,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import nuvio.composeapp.generated.resources.*
@@ -610,7 +612,6 @@ fun PlayerScreen(
         fun tryShowParentalGuide() {
             if (!parentalGuideHasShown && parentalWarnings.isNotEmpty() && !playbackStartedForParentalGuide) {
                 playbackStartedForParentalGuide = true
-                controlsVisible = true
                 showParentalGuide = true
                 parentalGuideHasShown = true
             }
@@ -2217,8 +2218,6 @@ fun PlayerScreen(
             playerControlsLocked,
             isScrubbingTimeline,
             playbackSnapshot.isPlaying,
-            playbackSnapshot.isLoading,
-            showParentalGuide,
             errorMessage,
             showSourcesPanel,
             showEpisodesPanel,
@@ -2232,15 +2231,13 @@ fun PlayerScreen(
             if (isScrubbingTimeline) return@LaunchedEffect
             if (!playbackSnapshot.isPlaying) return@LaunchedEffect
             if (playbackSnapshot.isLoading) return@LaunchedEffect
-            if (showParentalGuide) return@LaunchedEffect
             if (errorMessage != null) return@LaunchedEffect
-
             val blockingPanelOpen =
                 showSourcesPanel ||
-                    showEpisodesPanel ||
-                    showAudioModal ||
-                    showSubtitleModal ||
-                    showSubmitIntroModal
+                        showEpisodesPanel ||
+                        showAudioModal ||
+                        showSubtitleModal ||
+                        showSubmitIntroModal
             if (blockingPanelOpen) return@LaunchedEffect
 
             delay(PlayerControlsAutoHideDelayMs)
@@ -2525,6 +2522,8 @@ fun PlayerScreen(
                     playNextEpisode()
                 },
                 skipActiveSegment = ::skipActiveSegment,
+                activateHoldToSpeed = ::activateHoldToSpeed,
+                deactivateHoldToSpeed = ::deactivateHoldToSpeed,
             ),
         )
 

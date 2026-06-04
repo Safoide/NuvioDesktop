@@ -41,6 +41,7 @@ import com.nuvio.app.core.i18n.localizedByteUnit
 import com.nuvio.app.core.ui.NuvioToastController
 import com.nuvio.app.features.addons.httpRequestRaw
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -631,7 +632,7 @@ class AppUpdaterController internal constructor(
             return
         }
 
-        scope.launch {
+        scope.launch(kotlinx.coroutines.Dispatchers.IO) {
             downloadMutex.withLock {
                 _uiState.update { state ->
                     state.copy(
@@ -708,11 +709,10 @@ class AppUpdaterController internal constructor(
             _uiState.update { state -> state.copy(showUnknownSourcesDialog = true, showDialog = true) }
             return
         }
-
-        AppUpdaterPlatform.installDownloadedApk(apkPath).onSuccess {
-            _uiState.update { state -> state.copy(showUnknownSourcesDialog = false) }
-        }.onFailure { error ->
-            scope.launch {
+        scope.launch(kotlinx.coroutines.Dispatchers.IO) {
+            AppUpdaterPlatform.installDownloadedApk(apkPath).onSuccess {
+                _uiState.update { state -> state.copy(showUnknownSourcesDialog = false) }
+            }.onFailure { error ->
                 val fallbackMessage = error.message ?: getString(Res.string.updates_install_failed)
                 _uiState.update { state ->
                     state.copy(

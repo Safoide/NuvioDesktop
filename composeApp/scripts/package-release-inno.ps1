@@ -36,7 +36,7 @@ $issPath = Join-Path $outputDirResolved "Nuvio-$AppVersion-$AppBuild-x64.iss"
 $issContent = @"
 #define MyAppName "Nuvio"
 #define MyAppVersion "$AppVersion"
-#define MyAppPublisher "Creepso"
+#define MyAppPublisher "Safoide"
 
 [Setup]
 AppId={{7E14C1D3-BFA0-45B4-BD5E-0B3D8D6D3C11}
@@ -58,7 +58,6 @@ WizardSmallImageFile=$($sidebarPngResolved.Replace('\', '\\'))
 UninstallDisplayIcon={app}\Nuvio.exe
 
 [Languages]
-Name: "french"; MessagesFile: "compiler:Languages\French.isl"
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Tasks]

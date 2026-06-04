@@ -821,12 +821,13 @@ fun ActiveProfileMiniAvatar(
     val borderColor = if (selected) {
         MaterialTheme.colorScheme.primary
     } else {
-        avatarColor.copy(alpha = 0.5f)
+        avatarColor.copy(alpha = 0.0f)
     }
 
     Box(
         modifier = Modifier
             .size(size.dp)
+            .border(2.dp, borderColor, CircleShape)
             .clip(CircleShape)
             .background(
                 if (avatarImageUrl != null) {
@@ -834,8 +835,7 @@ fun ActiveProfileMiniAvatar(
                 } else {
                     avatarColor.copy(alpha = 0.15f)
                 },
-            )
-            .border(1.5.dp, borderColor, CircleShape),
+            ),
         contentAlignment = Alignment.Center,
     ) {
         if (avatarImageUrl != null) {

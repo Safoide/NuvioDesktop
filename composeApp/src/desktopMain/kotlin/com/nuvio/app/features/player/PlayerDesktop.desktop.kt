@@ -43,7 +43,12 @@ import java.awt.Toolkit
 import java.awt.event.KeyEvent
 import java.awt.image.BufferedImage
 import java.util.Locale
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -1193,6 +1198,12 @@ actual fun ManagePlayerCursorVisibility(visible: Boolean) {
     val composeWindow = window as? ComposeWindow
     val hiddenCursor = remember { createHiddenPlayerCursor() }
 
+    LaunchedEffect(visible) {
+        val cursor = if (visible) Cursor.getDefaultCursor() else hiddenCursor
+        window?.cursor = cursor
+        composeWindow?.contentPane?.cursor = cursor
+    }
+
     DisposableEffect(window, composeWindow) {
         val previousWindowCursor = window?.cursor
         val previousContentPaneCursor = composeWindow?.contentPane?.cursor
@@ -1200,12 +1211,6 @@ actual fun ManagePlayerCursorVisibility(visible: Boolean) {
             window?.cursor = previousWindowCursor ?: Cursor.getDefaultCursor()
             composeWindow?.contentPane?.cursor = previousContentPaneCursor ?: Cursor.getDefaultCursor()
         }
-    }
-
-    SideEffect {
-        val cursor = if (visible) Cursor.getDefaultCursor() else hiddenCursor
-        window?.cursor = cursor
-        composeWindow?.contentPane?.cursor = cursor
     }
 }
 
@@ -1346,15 +1351,55 @@ actual fun BindPlayerKeyboardShortcuts(
     DisposableEffect(enabled) {
         if (!enabled) return@DisposableEffect onDispose {}
         val keyboardFocusManager = KeyboardFocusManager.getCurrentKeyboardFocusManager()
+        var spaceHeldDown = false
+        var speedBoostActivated = false
+        var holdJob: kotlinx.coroutines.Job? = null
+        val scope = kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.Main)
+
         val dispatcher = KeyEventDispatcher { event ->
+            val action = KeybindsStorage.actionForKeyCode(event.keyCode, event.modifiersEx)
+
+            if (event.keyCode == KeyEvent.VK_SPACE) {
+                when (event.id) {
+                    KeyEvent.KEY_PRESSED -> {
+                        if (!spaceHeldDown) {
+                            spaceHeldDown = true
+                            speedBoostActivated = false
+                            holdJob?.cancel()
+                            holdJob = scope.launch {
+                                delay(500L) // esperar medio segundo antes de activar boost
+                                speedBoostActivated = true
+                                latestHandlers.activateHoldToSpeed()
+                            }
+                        }
+                        return@KeyEventDispatcher true
+                    }
+                    KeyEvent.KEY_RELEASED -> {
+                        holdJob?.cancel()
+                        holdJob = null
+                        spaceHeldDown = false
+                        if (speedBoostActivated) {
+                            // estaba en boost → desactivar, NO hacer play/pause
+                            speedBoostActivated = false
+                            latestHandlers.deactivateHoldToSpeed()
+                        } else {
+                            // tap rápido → comportamiento normal de play/pause
+                            latestHandlers.togglePlayback()
+                        }
+                        return@KeyEventDispatcher true
+                    }
+                }
+            }
+
             if (event.id != KeyEvent.KEY_RELEASED) {
                 return@KeyEventDispatcher false
             }
-            when (KeybindsStorage.actionForKeyCode(event.keyCode, event.modifiersEx)) {
+
+            when (action) {
                 "toggle_fullscreen" -> {
                     DesktopRuntimeLog.info(
                         "fullscreenShortcut: route=player action=toggle_fullscreen key=${event.keyCode} " +
-                            "modifiers=${event.modifiersEx}",
+                                "modifiers=${event.modifiersEx}",
                     )
                     latestHandlers.toggleFullscreen()
                 }
@@ -1374,6 +1419,11 @@ actual fun BindPlayerKeyboardShortcuts(
 
         keyboardFocusManager.addKeyEventDispatcher(dispatcher)
         onDispose {
+            holdJob?.cancel()
+            scope.cancel()
+            if (speedBoostActivated) {
+                latestHandlers.deactivateHoldToSpeed()
+            }
             keyboardFocusManager.removeKeyEventDispatcher(dispatcher)
         }
     }

@@ -9,8 +9,11 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.scaleIn
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.hoverable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -38,12 +41,13 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.Composable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.key
@@ -57,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -3048,13 +3053,28 @@ private fun TabletFloatingTopBar(
                         )
                     },
                 )
-                Surface(
-                    color = if (selectedTab == AppScreenTab.Settings) {
-                        MaterialTheme.colorScheme.primaryContainer
-                    } else {
-                        MaterialTheme.colorScheme.surface
+                val profileInteractionSource = remember { MutableInteractionSource() }
+                val isProfileHovered by profileInteractionSource.collectIsHoveredAsState()
+                val isSettingsSelected = selectedTab == AppScreenTab.Settings
+
+                val profileBgColor by animateColorAsState(
+                    targetValue = when {
+                        isSettingsSelected -> MaterialTheme.colorScheme.primaryContainer
+                        isProfileHovered -> MaterialTheme.colorScheme.surfaceVariant
+                        else -> MaterialTheme.colorScheme.surface
                     },
-                    shape = RoundedCornerShape(999.dp),
+                    animationSpec = tween(durationMillis = 300),
+                )
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(999.dp))
+                        .background(profileBgColor)
+                        .hoverable(interactionSource = profileInteractionSource)
+                        .clickable(
+                            interactionSource = profileInteractionSource,
+                            indication = null,
+                            onClick = { onTabSelected(AppScreenTab.Settings) },
+                        ),
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
@@ -3062,16 +3082,15 @@ private fun TabletFloatingTopBar(
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
                         ProfileSwitcherTab(
-                            selected = selectedTab == AppScreenTab.Settings,
+                            selected = isSettingsSelected,
                             onClick = { onTabSelected(AppScreenTab.Settings) },
                             onProfileSelected = onProfileSelected,
                             onAddProfileRequested = onAddProfileRequested,
                         )
                         Text(
                             text = stringResource(Res.string.compose_nav_profile),
-                            modifier = Modifier.clickable { onTabSelected(AppScreenTab.Settings) },
                             style = MaterialTheme.typography.labelLarge,
-                            color = if (selectedTab == AppScreenTab.Settings) {
+                            color = if (isSettingsSelected) {
                                 MaterialTheme.colorScheme.onPrimaryContainer
                             } else {
                                 MaterialTheme.colorScheme.onSurfaceVariant
@@ -3094,26 +3113,50 @@ private fun TabletTopPillItem(
     onClick: () -> Unit,
     icon: @Composable () -> Unit,
 ) {
-    Surface(
-        color = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surface,
-        shape = RoundedCornerShape(999.dp),
-        tonalElevation = if (selected) 2.dp else 0.dp,
-        modifier = Modifier.clickable(onClick = onClick),
+    val interactionSource = remember { MutableInteractionSource() }
+    val isHovered by interactionSource.collectIsHoveredAsState()
+
+    val bgColor by animateColorAsState(
+        targetValue = when {
+            selected -> MaterialTheme.colorScheme.primaryContainer
+            isHovered -> MaterialTheme.colorScheme.surfaceVariant
+            else -> MaterialTheme.colorScheme.surface
+        },
+        animationSpec = tween(durationMillis = 300),
+    )
+    val textColor by animateColorAsState(
+        targetValue = if (selected) MaterialTheme.colorScheme.onPrimaryContainer
+        else MaterialTheme.colorScheme.onSurfaceVariant,
+        animationSpec = tween(durationMillis = 300),
+    )
+
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(999.dp))
+            .background(bgColor)
+            .hoverable(interactionSource = interactionSource)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick,
+            ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            icon()
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(24.dp)
+            ) {
+                icon()
+            }
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelLarge,
-                color = if (selected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                },
+                color = textColor,
             )
         }
     }

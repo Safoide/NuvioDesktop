@@ -613,6 +613,15 @@ internal class MpvDesktopPlayerBackend private constructor(
             return currentVolume()
         }
 
+        override fun setSubtitleDelayMs(delayMs: Int) {
+            if (!canReceiveCommands()) return
+            runCatching {
+                mpvHandle.setMpvProperty("sub-delay", delayMs / 1000.0)
+            }
+                .onSuccess { DesktopRuntimeLog.info("MPV sub-delay=${delayMs}ms applied") }
+                .onFailure { DesktopRuntimeLog.error("MPV setSubtitleDelayMs failed delayMs=$delayMs", it) }
+        }
+
         override fun getAudioTracks(): List<AudioTrack> =
             if (canReceiveCommands()) runCatching { mpvHandle.audioTracks() }.getOrDefault(emptyList()) else emptyList()
 
@@ -766,7 +775,7 @@ internal class MpvDesktopPlayerBackend private constructor(
                 handle.setMpvRuntimeOption("sub-ass-override", assOverrideMode)
                 handle.setMpvRuntimeOption("sub-color", colorHex)
                 handle.setMpvRuntimeOption("sub-border-size", outline)
-                handle.setMpvRuntimeOption("sub-font-size", style.fontSizeSp.toDouble())
+                handle.setMpvRuntimeOption("sub-font-size", style.fontSizeSp.toDouble() * 2)
                 handle.setMpvRuntimeOption("sub-pos", subPos)
                 handle.setMpvRuntimeOption("sub-align-y", "bottom")
 

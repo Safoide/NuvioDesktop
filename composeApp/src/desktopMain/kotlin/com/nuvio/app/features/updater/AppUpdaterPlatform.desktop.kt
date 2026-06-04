@@ -117,9 +117,8 @@ actual object AppUpdaterPlatform {
         check(installer.exists()) { "Downloaded update file no longer exists." }
         val extension = installer.extension.lowercase(Locale.US)
         check(extension == "exe" || extension == "msi") { "Unsupported installer format: .$extension" }
-        val desktop = checkNotNull(Desktop.getDesktop()) { "Desktop file launcher is unavailable." }
-        check(desktop.isSupported(Desktop.Action.OPEN)) { "Opening downloaded updates is unavailable." }
-        desktop.open(installer)
+        Runtime.getRuntime().exec(arrayOf("cmd", "/c", "start", "", installer.absolutePath))
+        Unit
     }
 
     actual fun openDownloadedFileLocation(path: String): Result<Unit> = runCatching {

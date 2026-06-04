@@ -27,6 +27,8 @@ data class PlayerKeyboardShortcutHandlers(
     val cyclePlaybackSpeed: () -> Unit,
     val playNextEpisode: () -> Unit,
     val skipActiveSegment: () -> Unit,
+    val activateHoldToSpeed: () -> Unit,
+    val deactivateHoldToSpeed: () -> Unit,
 )
 
 data class PlayerAudioLevel(
