@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
@@ -29,7 +28,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 data class NuvioDropdownOption(
@@ -48,14 +46,15 @@ fun NuvioDropdownChip(
     onSelected: (NuvioDropdownOption) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val tokens = MaterialTheme.nuvio
     var isSheetVisible by remember { mutableStateOf(false) }
     val sheetState = rememberNuvioBottomSheetState()
     val coroutineScope = rememberCoroutineScope()
 
     Row(
         modifier = modifier
-            .clip(RoundedCornerShape(12.dp))
-            .background(MaterialTheme.colorScheme.surface)
+            .clip(tokens.shapes.compactCard)
+            .background(tokens.colors.surface)
             .then(
                 if (enabled) {
                     Modifier.clickable { isSheetVisible = true }
@@ -63,22 +62,22 @@ fun NuvioDropdownChip(
                     Modifier
                 },
             )
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(6.dp),
+            .padding(horizontal = NuvioTokens.Space.s12, vertical = tokens.components.chipVerticalPadding),
+        horizontalArrangement = Arrangement.spacedBy(NuvioTokens.Space.s6),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelLarge,
-            color = if (enabled) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (enabled) tokens.colors.textPrimary else tokens.colors.textDisabled,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
         Icon(
             imageVector = Icons.Rounded.KeyboardArrowDown,
             contentDescription = null,
-            modifier = Modifier.size(18.dp),
-            tint = if (enabled) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.outline,
+            modifier = Modifier.size(NuvioTokens.Icon.sm + NuvioTokens.Space.s2),
+            tint = if (enabled) tokens.colors.textMuted else tokens.colors.borderDefault,
         )
     }
 
@@ -119,6 +118,7 @@ private fun NuvioDropdownOptionsSheet(
     onDismiss: () -> Unit,
     onSelected: (NuvioDropdownOption) -> Unit,
 ) {
+    val tokens = MaterialTheme.nuvio
     NuvioModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
@@ -126,19 +126,19 @@ private fun NuvioDropdownOptionsSheet(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = nuvioSafeBottomPadding(16.dp)),
+                .padding(bottom = nuvioSafeBottomPadding(tokens.spacing.screenHorizontal)),
         ) {
             Text(
                 text = title,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                modifier = Modifier.padding(horizontal = tokens.spacing.screenHorizontal, vertical = NuvioTokens.Space.s14),
                 style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
+                color = tokens.colors.textPrimary,
             )
             NuvioBottomSheetDivider()
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 420.dp),
+                    .heightIn(max = tokens.breakpoints.largePhone),
             ) {
                 itemsIndexed(options) { index, option ->
                     NuvioBottomSheetActionRow(
@@ -149,8 +149,8 @@ private fun NuvioDropdownOptionsSheet(
                                 Icon(
                                     imageVector = Icons.Rounded.Check,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(20.dp),
+                                    tint = tokens.colors.accent,
+                                    modifier = Modifier.size(tokens.icons.md),
                                 )
                             }
                         },
