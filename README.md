@@ -30,7 +30,7 @@ The mobile app is built from a single shared codebase in [composeApp](./composeA
 
 Nuvio Desktop is currently a Windows-first build. Download the latest
 installer or portable ZIP from the
-[Nuvio Desktop releases](https://github.com/CreepsoOff/NuvioDesktop/releases).
+[Nuvio Desktop releases](https://github.com/Safoide/NuvioDesktop/releases).
 
 Upgrade paths:
 

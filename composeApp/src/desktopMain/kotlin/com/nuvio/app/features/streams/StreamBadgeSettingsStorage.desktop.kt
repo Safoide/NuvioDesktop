@@ -46,4 +46,18 @@ internal actual object StreamBadgeSettingsStorage {
         }
         payload.decodeSyncString(streamBadgeRulesKey)?.let(::saveStreamBadgeRules)
     }
+
+    actual fun loadShowFileSizeBadges(): Boolean? =
+        DesktopPreferences.getBoolean(preferencesName, ProfileScopedKey.of("show_file_size_badges"))
+
+    actual fun saveShowFileSizeBadges(enabled: Boolean) {
+        DesktopPreferences.putBoolean(preferencesName, ProfileScopedKey.of("show_file_size_badges"), enabled)
+    }
+
+    actual fun loadStreamBadgePlacement(): String? =
+        DesktopPreferences.getString(preferencesName, ProfileScopedKey.of("stream_badge_placement"))
+
+    actual fun saveStreamBadgePlacement(placement: String) {
+        DesktopPreferences.putString(preferencesName, ProfileScopedKey.of("stream_badge_placement"), placement)
+    }
 }

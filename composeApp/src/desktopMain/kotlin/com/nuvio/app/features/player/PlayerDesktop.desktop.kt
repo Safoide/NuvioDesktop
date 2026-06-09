@@ -1178,6 +1178,12 @@ internal actual object PlayerSettingsStorage {
     private fun saveStringSet(key: String, values: Set<String>) {
         DesktopPreferences.putStringSet(preferencesName, scopedKey(key), values)
     }
+
+    actual fun loadIosAudioOutputMode(): String? = loadString("ios_audio_output_mode")
+
+    actual fun saveIosAudioOutputMode(mode: String) {
+        saveString("ios_audio_output_mode", mode)
+    }
 }
 
 @Composable

@@ -21,4 +21,12 @@ actual object P2pStreamingEngine {
     actual fun shutdown() {
         _state.value = P2pStreamingState.Idle
     }
+
+    actual fun warmup() {
+        // Not applicable on Desktop
+    }
+
+    actual fun cooldownWarmup() {
+        // Not applicable on Desktop
+    }
 }

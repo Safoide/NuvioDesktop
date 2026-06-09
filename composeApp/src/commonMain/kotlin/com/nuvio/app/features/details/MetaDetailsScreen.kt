@@ -787,27 +787,6 @@ fun MetaDetailsScreen(
                                 contentMaxWidth = contentMaxWidth,
                                 scrollOffset = scrollState.value,
                                 onHeightChanged = { heroHeightPx = it },
-                                heroTrailerSourceUrl = heroTrailerSourceUrl,
-                                heroTrailerSourceAudioUrl = heroTrailerSourceAudioUrl,
-                                heroTrailerReady = heroTrailerReady,
-                                heroTrailerPlayWhenReady = heroTrailerPlayWhenReady,
-                                heroTrailerMuted = heroTrailerMuted,
-                                onHeroTrailerMuteToggle = {
-                                    HeroTrailerAudioState.toggleMuted()
-                                },
-                                onHeroTrailerReady = {
-                                    if (!heroTrailerFinished) {
-                                        heroTrailerReady = true
-                                    }
-                                },
-                                onHeroTrailerEnded = {
-                                    heroTrailerReady = false
-                                    heroTrailerFinished = true
-                                },
-                                onHeroTrailerError = {
-                                    heroTrailerReady = false
-                                    heroTrailerFinished = true
-                                },
                             )
 
                             Column(

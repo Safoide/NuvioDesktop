@@ -9,8 +9,9 @@ import io.github.jan.supabase.postgrest.Postgrest
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.http.HttpHeaders
 
+@OptIn(SupabaseInternal::class)
 object SupabaseProvider {
-    @OptIn(SupabaseInternal::class)
+
     val isConfigured: Boolean
         get() = SupabaseConfig.URL.isNotBlank() && SupabaseConfig.ANON_KEY.isNotBlank()
 
