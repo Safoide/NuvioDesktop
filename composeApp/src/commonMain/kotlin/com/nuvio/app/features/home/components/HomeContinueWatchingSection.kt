@@ -55,6 +55,7 @@ import com.nuvio.app.core.ui.landscapePosterHeightForWidth
 import com.nuvio.app.core.ui.landscapePosterWidth
 import com.nuvio.app.core.ui.posterCardClickable
 import com.nuvio.app.core.ui.rememberPosterCardStyleUiState
+import com.nuvio.app.core.ui.rememberSizedImageRequest
 import com.nuvio.app.features.cloud.CloudLibraryContentType
 import com.nuvio.app.features.cloud.cloudLibraryDisplayArtworkUrl
 import com.nuvio.app.features.home.HomeCatalogSettingsRepository
@@ -609,34 +610,42 @@ private fun ContinueWatchingCard(
             .posterCardClickable(onClick = onClick, onLongClick = onLongClick),
     ) {
         if (imageUrl != null) {
-            AsyncImage(
-                model = cloudLibraryDisplayArtworkUrl(imageUrl),
-                contentDescription = item.title,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier)
-                    .drawWithContent {
-                        drawContent()
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val imageRequest = rememberSizedImageRequest(
+                    imageUrl = cloudLibraryDisplayArtworkUrl(imageUrl),
+                    width = maxWidth,
+                    height = maxHeight,
+                    memoryCacheKeyPrefix = "cw-card",
+                )
+                AsyncImage(
+                    model = imageRequest ?: cloudLibraryDisplayArtworkUrl(imageUrl),
+                    contentDescription = item.title,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier)
+                        .drawWithContent {
+                            drawContent()
 
-                        val startY = size.height * 0.45f
-                        val gradient = Brush.verticalGradient(
-                            colorStops = arrayOf(
-                                0.0f to Color.Transparent,
-                                0.60f to backgroundColor.copy(alpha = 0.70f),
-                                1.0f to backgroundColor.copy(alpha = 0.95f),
-                            ),
-                            startY = startY,
-                            endY = size.height,
-                        )
+                            val startY = size.height * 0.45f
+                            val gradient = Brush.verticalGradient(
+                                colorStops = arrayOf(
+                                    0.0f to Color.Transparent,
+                                    0.60f to backgroundColor.copy(alpha = 0.70f),
+                                    1.0f to backgroundColor.copy(alpha = 0.95f),
+                                ),
+                                startY = startY,
+                                endY = size.height,
+                            )
 
-                        drawRect(
-                            brush = gradient,
-                            topLeft = Offset(-2f, startY),
-                            size = Size(size.width + 4f, (size.height - startY) + 4f),
-                        )
-                    },
-                contentScale = ContentScale.Crop,
-            )
+                            drawRect(
+                                brush = gradient,
+                                topLeft = Offset(-2f, startY),
+                                size = Size(size.width + 4f, (size.height - startY) + 4f),
+                            )
+                        },
+                    contentScale = ContentScale.Crop,
+                )
+            }
         }
         if (!posterCardStyle.hideLabelsEnabled) {
             Column(
@@ -918,15 +927,23 @@ private fun ContinueWatchingPosterCard(
                 item.isNextUp &&
                 imageUrl == firstNonBlank(item.episodeThumbnail)
             if (imageUrl != null) {
-                AsyncImage(
-                    model = cloudLibraryDisplayArtworkUrl(imageUrl),
-                    contentDescription = item.title,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier),
-                    contentScale = if (item.isCloudLibraryItem()) ContentScale.Fit else ContentScale.Crop,
-                    filterQuality = NuvioImageFilterQuality,
-                )
+                BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                    val imageRequest = rememberSizedImageRequest(
+                        imageUrl = cloudLibraryDisplayArtworkUrl(imageUrl),
+                        width = maxWidth,
+                        height = maxHeight,
+                        memoryCacheKeyPrefix = "cw-poster",
+                    )
+                    AsyncImage(
+                        model = imageRequest ?: cloudLibraryDisplayArtworkUrl(imageUrl),
+                        contentDescription = item.title,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .then(if (shouldBlurArtwork) Modifier.blur(18.dp) else Modifier),
+                        contentScale = if (item.isCloudLibraryItem()) ContentScale.Fit else ContentScale.Crop,
+                        filterQuality = NuvioImageFilterQuality,
+                    )
+                }
             }
             if (item.progressFraction <= 0f && item.seasonNumber != null && item.episodeNumber != null) {
                 Box(
@@ -1025,15 +1042,23 @@ private fun ArtworkPanel(
             .background(MaterialTheme.colorScheme.surfaceVariant),
     ) {
         if (imageUrl != null) {
-            AsyncImage(
-                model = cloudLibraryDisplayArtworkUrl(imageUrl),
-                contentDescription = null,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .then(if (blurred) Modifier.blur(18.dp) else Modifier),
-                contentScale = contentScale,
-                filterQuality = NuvioImageFilterQuality,
-            )
+            BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+                val imageRequest = rememberSizedImageRequest(
+                    imageUrl = cloudLibraryDisplayArtworkUrl(imageUrl),
+                    width = maxWidth,
+                    height = maxHeight,
+                    memoryCacheKeyPrefix = "cw-wide",
+                )
+                AsyncImage(
+                    model = imageRequest ?: cloudLibraryDisplayArtworkUrl(imageUrl),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .then(if (blurred) Modifier.blur(18.dp) else Modifier),
+                    contentScale = contentScale,
+                    filterQuality = NuvioImageFilterQuality,
+                )
+            }
         }
     }
 }

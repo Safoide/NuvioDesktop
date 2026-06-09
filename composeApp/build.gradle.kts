@@ -754,6 +754,12 @@ compose.desktop {
                 mediampPrebuiltDir.safePath(),
                 System.getenv("NUVIO_MPV_DIR")?.let { "$it/bin" } ?: "",
             ).filter { it.isNotEmpty() }.joinToString(System.getProperty("path.separator")),
+            "-XX:+UseZGC",
+            "-XX:TieredStopAtLevel=1",
+            "-Xms64m",
+            "-Xmx512m",
+            "-Xshare:auto",
+            "-XX:+TieredCompilation",
         )
 
         buildTypes.release.proguard {
@@ -763,7 +769,7 @@ compose.desktop {
         nativeDistributions {
             packageName = "Nuvio"
             packageVersion = releaseAppVersionName
-            vendor = "Creepso"
+            vendor = "Safoide"
             modules("java.net.http")
 
             val hostOs = System.getProperty("os.name").lowercase()

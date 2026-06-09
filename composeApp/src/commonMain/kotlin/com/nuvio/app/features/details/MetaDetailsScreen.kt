@@ -63,6 +63,7 @@ import com.nuvio.app.core.ui.NuvioBackButton
 import com.nuvio.app.core.ui.NuvioImageFilterQuality
 import com.nuvio.app.core.ui.TraktListPickerDialog
 import com.nuvio.app.core.ui.nuvioSafeBottomPadding
+import com.nuvio.app.core.ui.upgradeTmdbImageQuality
 import com.nuvio.app.features.details.components.DetailActionButtons
 import com.nuvio.app.features.details.components.CommentDetailSheet
 import com.nuvio.app.features.details.components.DetailAdditionalInfoSection
@@ -672,7 +673,7 @@ fun MetaDetailsScreen(
                             val backdropUrl = meta.background ?: meta.poster
                             if (backdropUrl != null) {
                                 AsyncImage(
-                                    model = backdropUrl,
+                                    model = remember(backdropUrl) { backdropUrl?.upgradeTmdbImageQuality() } ?: backdropUrl,
                                     contentDescription = null,
                                     modifier = Modifier
                                         .fillMaxSize()

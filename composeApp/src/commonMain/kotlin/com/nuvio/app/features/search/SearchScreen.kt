@@ -230,11 +230,6 @@ fun SearchScreen(
         val homeSectionPadding = remember(maxWidth) {
             homeSectionHorizontalPaddingForWidth(maxWidth.value)
         }
-        val headerTitle = when {
-            query.isNotBlank() -> stringResource(Res.string.compose_nav_search)
-            discoverInFocus -> stringResource(Res.string.compose_search_discover_title)
-            else -> stringResource(Res.string.compose_nav_search)
-        }
 
         NuvioScreen(
             horizontalPadding = 0.dp,
@@ -246,13 +241,10 @@ fun SearchScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .nuvioBlockPointerPassthrough()
-                    .background(MaterialTheme.colorScheme.background),
+                    .background(MaterialTheme.colorScheme.background)
+                    .padding(0.dp, 60.dp, 0.dp, 0.dp),
             ) {
-                NuvioScreenHeader(
-                    title = headerTitle,
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                )
-                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(6.dp))
+                androidx.compose.foundation.layout.Spacer(modifier = Modifier.height(20.dp))
                 androidx.compose.foundation.layout.Box(modifier = Modifier.padding(horizontal = 16.dp)) {
                     NuvioInputField(
                         value = query,

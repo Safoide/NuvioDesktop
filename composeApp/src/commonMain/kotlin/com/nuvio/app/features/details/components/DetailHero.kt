@@ -27,6 +27,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import coil3.compose.AsyncImage
 import com.nuvio.app.core.ui.NuvioImageFilterQuality
 import com.nuvio.app.core.ui.upgradeTmdbImageQuality
+import com.nuvio.app.core.ui.rememberSizedImageRequest
 import com.nuvio.app.features.details.MetaDetails
 import nuvio.composeapp.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
@@ -110,13 +111,20 @@ fun DetailHero(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     if (meta.logo != null) {
+                        val logoHeight = if (isTablet) 72.dp else 80.dp
+                        val logoRequest = rememberSizedImageRequest(
+                            imageUrl = meta.logo.upgradeTmdbImageQuality(),
+                            width = contentMaxWidth,
+                            height = logoHeight,
+                            memoryCacheKeyPrefix = "detail-hero-logo",
+                        )
                         AsyncImage(
-                            model = meta.logo,
+                            model = logoRequest ?: meta.logo,
                             contentDescription = stringResource(Res.string.detail_logo_content_description, meta.name),
                             modifier = Modifier
                                 .fillMaxWidth(if (isTablet) 0.56f else 0.6f)
                                 .widthIn(max = contentMaxWidth)
-                                .height(if (isTablet) 72.dp else 80.dp),
+                                .height(logoHeight),
                             alignment = Alignment.Center,
                             contentScale = ContentScale.Fit,
                             filterQuality = NuvioImageFilterQuality,

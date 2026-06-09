@@ -528,6 +528,7 @@ fun App(
             }
         }
 
+        var showProfileTransitionOverlay by remember { mutableStateOf(false) }
         AnimatedContent(
             targetState = gateScreen,
             label = "app_gate",
@@ -562,7 +563,13 @@ fun App(
                             if (authState is AuthState.Authenticated) {
                                 SyncManager.pullAllForProfile(profile.profileIndex)
                             }
-                            gateScreen = AppGateScreen.Main.name
+                            showProfileTransitionOverlay = true
+                            kotlinx.coroutines.MainScope().launch {
+                                kotlinx.coroutines.delay(50)
+                                gateScreen = AppGateScreen.Main.name
+                                kotlinx.coroutines.delay(2500)
+                                showProfileTransitionOverlay = false
+                            }
                         },
                         onEditProfile = { profile ->
                             editingProfile = profile
@@ -589,15 +596,31 @@ fun App(
                     )
                 }
                 AppGateScreen.Main.name -> {
-                    MainAppContent(
-                        startupPlayerLaunch = startupPlayerLaunch,
-                        onSwitchProfile = {
-                            autoSkipProfileSelection = false
-                            gateScreen = AppGateScreen.ProfileSelection.name
-                        },
-                    )
+                    var mainContentReady by remember { mutableStateOf(false) }
+                    LaunchedEffect(Unit) {
+                        kotlinx.coroutines.delay(600)
+                        mainContentReady = true
+                    }
+                    if (mainContentReady) {
+                        MainAppContent(
+                            startupPlayerLaunch = startupPlayerLaunch,
+                            onSwitchProfile = {
+                                autoSkipProfileSelection = false
+                                gateScreen = AppGateScreen.ProfileSelection.name
+                            },
+                        )
+                    }
                 }
             }
+        }
+
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showProfileTransitionOverlay,
+            enter = fadeIn(),
+            exit = fadeOut(tween(400)),
+            modifier = Modifier.fillMaxSize(),
+        ) {
+            AppLaunchOverlay(modifier = Modifier.fillMaxSize())
         }
     }
 }

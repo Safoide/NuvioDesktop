@@ -141,9 +141,7 @@ internal actual fun DesktopDecoderSettingsSection(isTablet: Boolean) {
                 isTablet = isTablet,
                 onClick = { showTransferDialog = true },
             )
-        }
-
-        SettingsGroup(isTablet = isTablet) {
+            SettingsGroupDivider(isTablet = isTablet)
             SettingsSwitchRow(
                 title = stringResource(Res.string.settings_playback_desktop_hdr_compute_peak),
                 description = null,
@@ -176,9 +174,7 @@ internal actual fun DesktopDecoderSettingsSection(isTablet: Boolean) {
                     refresh()
                 },
             )
-        }
-
-        SettingsGroup(isTablet = isTablet) {
+            SettingsGroupDivider(isTablet = isTablet)
             VideoEqSlider(
                 title = stringResource(Res.string.settings_playback_desktop_video_brightness),
                 value = tuning.brightness,

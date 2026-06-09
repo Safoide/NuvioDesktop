@@ -22,7 +22,7 @@ internal actual fun DebugLogsSettingsSection(isTablet: Boolean) {
     }
 
     SettingsSection(
-        title = "Debugging",
+        title = "DEBUGGING",
         isTablet = isTablet,
     ) {
         SettingsGroup(isTablet = isTablet) {
