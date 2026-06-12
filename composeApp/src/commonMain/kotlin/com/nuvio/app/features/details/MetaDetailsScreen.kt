@@ -1463,6 +1463,7 @@ private fun DetailSectionContainer(
                         Modifier.widthIn(max = contentMaxWidth)
                     },
                 ),
+            contentAlignment = Alignment.Center,
         ) {
             content()
         }
