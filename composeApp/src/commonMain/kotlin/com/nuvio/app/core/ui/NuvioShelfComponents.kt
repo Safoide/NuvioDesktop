@@ -33,11 +33,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerType
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.text.style.TextAlign
@@ -357,12 +359,18 @@ private fun NuvioShelfSectionHeader(
                 )
             }
         }
-        if (onViewAllClick != null) {
-            NuvioViewAllPill(
-                onClick = onViewAllClick,
-                size = viewAllPillSize,
-            )
+        val viewAllPlaceholderModifier = if (onViewAllClick == null) {
+            Modifier
+                .alpha(0f)
+                .clearAndSetSemantics { }
+        } else {
+            Modifier
         }
+        NuvioViewAllPill(
+            onClick = onViewAllClick,
+            size = viewAllPillSize,
+            modifier = viewAllPlaceholderModifier,
+        )
     }
 }
 
@@ -370,6 +378,7 @@ private fun NuvioShelfSectionHeader(
 private fun NuvioViewAllPill(
     onClick: (() -> Unit)?,
     size: NuvioViewAllPillSize,
+    modifier: Modifier = Modifier,
 ) {
     val tokens = MaterialTheme.nuvio
     val colorScheme = MaterialTheme.colorScheme
@@ -384,7 +393,7 @@ private fun NuvioViewAllPill(
     val iconSpacing = if (size == NuvioViewAllPillSize.Compact) NuvioTokens.Space.s2 else NuvioTokens.Space.s4
 
     Row(
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = if (isAmoled) androidx.compose.ui.graphics.Color(0xFF0D0D0D)  else tokens.colors.surface,
                 shape = RoundedCornerShape(NuvioTokens.Radius.xl),
