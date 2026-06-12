@@ -34,7 +34,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -67,6 +69,10 @@ fun DetailHero(
     ) {
         val heroHeight = detailHeroHeight(maxWidth, isTablet)
 
+        var logoLoadError by remember(meta.id, meta.logo) {
+            mutableStateOf(false)
+        }
+        val logoUrl = meta.logo?.takeIf { it.isNotBlank() }
 
         Box(
             modifier = Modifier
@@ -132,9 +138,9 @@ fun DetailHero(
                         .padding(bottom = 8.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    if (meta.logo != null) {
+                    if (logoUrl != null && !logoLoadError) {
                         AsyncImage(
-                            model = meta.logo,
+                            model = logoUrl,
                             contentDescription = stringResource(Res.string.detail_logo_content_description, meta.name),
                             modifier = Modifier
                                 .fillMaxWidth(if (isTablet) 0.56f else 0.6f)
@@ -142,6 +148,7 @@ fun DetailHero(
                                 .height(if (isTablet) 72.dp else 80.dp),
                             alignment = Alignment.Center,
                             contentScale = ContentScale.Fit,
+                            onError = { logoLoadError = true },
                         )
                     } else {
                         Text(
