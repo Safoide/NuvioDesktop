@@ -148,7 +148,6 @@ object PlayerSettingsRepository {
     private var iosContrast = 0
     private var iosSaturation = 0
     private var iosGamma = 0
-
     private var volume = 1f
 
     fun ensureLoaded() {
