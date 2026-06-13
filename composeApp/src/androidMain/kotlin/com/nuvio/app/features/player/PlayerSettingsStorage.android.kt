@@ -28,6 +28,7 @@ actual object PlayerSettingsStorage {
     private const val externalPlayerIdKey = "external_player_id"
     private const val preferredAudioLanguageKey = "preferred_audio_language"
     private const val secondaryPreferredAudioLanguageKey = "secondary_preferred_audio_language"
+    private const val seekDurationMsKey = "seek_duration_ms"
     private const val preferredSubtitleLanguageKey = "preferred_subtitle_language"
     private const val secondaryPreferredSubtitleLanguageKey = "secondary_preferred_subtitle_language"
     private const val subtitleTextColorKey = "subtitle_text_color"
@@ -951,6 +952,23 @@ actual object PlayerSettingsStorage {
 
     actual fun saveIosGamma(value: Int) {
         saveIosInt(iosGammaKey, value)
+    }
+
+    actual fun loadSeekDurationMs(): Long? =
+        preferences?.let { sharedPreferences ->
+            val key = ProfileScopedKey.of(seekDurationMsKey)
+            if (sharedPreferences.contains(key)) {
+                sharedPreferences.getLong(key, 10000L)
+            } else {
+                null
+            }
+        }
+
+    actual fun saveSeekDurationMs(durationMs: Long) {
+        preferences
+            ?.edit()
+            ?.putLong(ProfileScopedKey.of(seekDurationMsKey), durationMs)
+            ?.apply()
     }
 
     actual fun exportToSyncPayload(): JsonObject = buildJsonObject {

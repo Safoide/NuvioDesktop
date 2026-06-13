@@ -767,7 +767,6 @@ compose.desktop {
                 mediampPrebuiltDir.safePath(),
                 System.getenv("NUVIO_MPV_DIR")?.let { "$it/bin" } ?: "",
             ).filter { it.isNotEmpty() }.joinToString(System.getProperty("path.separator")),
-            "-XX:+UseZGC",
             "-XX:TieredStopAtLevel=1",
             "-Xms64m",
             "-Xmx512m",
@@ -1055,4 +1054,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
     }
+}
+
+tasks.withType<JavaExec>().configureEach {
+    environment("SKIKO_RENDER_API", "OPENGL")
+
+    environment(
+        "NUVIO_MPV_DIR",
+        rootProject.file("mediamp/mediamp-mpv/build-ci/Release").absolutePath
+    )
 }

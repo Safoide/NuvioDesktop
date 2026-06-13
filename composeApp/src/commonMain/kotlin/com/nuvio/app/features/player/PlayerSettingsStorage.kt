@@ -130,4 +130,6 @@ internal expect object PlayerSettingsStorage {
     fun replaceFromSyncPayload(payload: JsonObject)
     fun loadVolume(): Float?
     fun saveVolume(volume: Float)
+    fun loadSeekDurationMs(): Long?
+    fun saveSeekDurationMs(durationMs: Long)
 }

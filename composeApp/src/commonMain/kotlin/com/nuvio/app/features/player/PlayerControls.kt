@@ -32,12 +32,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.OpenInNew
 import androidx.compose.material.icons.rounded.Build
 import androidx.compose.material.icons.rounded.Flag
+import androidx.compose.material.icons.rounded.Forward5
 import androidx.compose.material.icons.rounded.Forward10
+import androidx.compose.material.icons.rounded.Forward30
 import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.FullscreenExit
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material.icons.rounded.LockOpen
+import androidx.compose.material.icons.rounded.Replay5
 import androidx.compose.material.icons.rounded.Replay10
+import androidx.compose.material.icons.rounded.Replay30
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.VideoLibrary
@@ -66,7 +70,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.nuvio.app.core.ui.AppIconResource
+import com.nuvio.app.core.ui.Forward15
 import com.nuvio.app.core.ui.NuvioBackButton
+import com.nuvio.app.core.ui.Replay15
 import com.nuvio.app.core.ui.appIconPainter
 import com.nuvio.app.core.ui.nuvioTypeScale
 import nuvio.composeapp.generated.resources.*
@@ -96,6 +102,7 @@ internal fun PlayerControlsShell(
     onTogglePlayback: () -> Unit,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
+    seekDurationMs: Long,
     onResizeModeClick: () -> Unit,
     onSpeedClick: () -> Unit,
     onVolumeChange: (Float) -> Unit,
@@ -190,6 +197,7 @@ internal fun PlayerControlsShell(
                     metrics = metrics,
                     onSeekBack = onSeekBack,
                     onSeekForward = onSeekForward,
+                    seekDurationMs = seekDurationMs,
                     onTogglePlayback = onTogglePlayback,
                     modifier = Modifier
                         .align(Alignment.Center)
@@ -447,17 +455,32 @@ private fun CenterControls(
     metrics: PlayerLayoutMetrics,
     onSeekBack: () -> Unit,
     onSeekForward: () -> Unit,
+    seekDurationMs: Long,
     onTogglePlayback: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val forwardIcon = when (seekDurationMs) {
+        5000L -> Icons.Rounded.Forward5
+        15000L -> Icons.Rounded.Forward15
+        30000L -> Icons.Rounded.Forward30
+        else -> Icons.Rounded.Forward10
+    }
+    val replayIcon = when (seekDurationMs) {
+        5000L -> Icons.Rounded.Replay5
+        15000L -> Icons.Rounded.Replay15
+        30000L -> Icons.Rounded.Replay30
+        else -> Icons.Rounded.Replay10
+    }
+    val seekSeconds = (seekDurationMs / 1000).toInt()
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(metrics.centerGap),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         SideControlButton(
-            icon = Icons.Rounded.Replay10,
-            contentDescription = stringResource(Res.string.compose_player_seek_back_10),
+            icon = replayIcon,
+            contentDescription = "Retroceder $seekSeconds segundos", // Missing translation
             metrics = metrics,
             onClick = onSeekBack,
         )
@@ -468,8 +491,8 @@ private fun CenterControls(
             onClick = onTogglePlayback,
         )
         SideControlButton(
-            icon = Icons.Rounded.Forward10,
-            contentDescription = stringResource(Res.string.compose_player_seek_forward_10),
+            icon = forwardIcon,
+            contentDescription = "Avanzar $seekSeconds segundos", // Missing translation
             metrics = metrics,
             onClick = onSeekForward,
         )

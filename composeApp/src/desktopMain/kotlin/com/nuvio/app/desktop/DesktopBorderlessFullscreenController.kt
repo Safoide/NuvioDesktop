@@ -107,11 +107,10 @@ internal object DesktopBorderlessFullscreenController {
         runCatching {
             window.placement = WindowPlacement.Floating
             window.extendedState = window.extendedState and Frame.MAXIMIZED_BOTH.inv()
-            native.setWindowLongPtr(handle, GWL_STYLE, (currentStyle and WS_OVERLAPPEDWINDOW.inv()) or WS_POPUP)
             native.setWindowLongPtr(
                 handle,
-                GWL_EXSTYLE,
-                currentExStyle and (WS_EX_DLGMODALFRAME or WS_EX_WINDOWEDGE or WS_EX_CLIENTEDGE or WS_EX_STATICEDGE).inv(),
+                GWL_STYLE,
+                currentStyle and (WS_CAPTION or WS_THICKFRAME).inv(),
             )
             native.applyFrameBounds(handle, targetBounds, null)
             window.toFront()

@@ -270,6 +270,7 @@ private fun PlaybackSettingsSection(
     var showReuseCacheDurationDialog by remember { mutableStateOf(false) }
     var showDecoderPriorityDialog by remember { mutableStateOf(false) }
     var showHoldToSpeedValueDialog by remember { mutableStateOf(false) }
+    var showSeekDurationDialog by remember { mutableStateOf(false) }
     var showIosAudioOutputDialog by remember { mutableStateOf(false) }
     var showIosHardwareDecoderDialog by remember { mutableStateOf(false) }
     var showIosTargetPrimariesDialog by remember { mutableStateOf(false) }
@@ -370,6 +371,14 @@ private fun PlaybackSettingsSection(
                         onClick = { showHoldToSpeedValueDialog = true },
                     )
                 }
+                val seekDurationSeconds = autoPlayPlayerSettings.seekDurationMs / 1000
+                SettingsGroupDivider(isTablet = isTablet)
+                SettingsNavigationRow(
+                    title = "Duración del salto",
+                    description = "$seekDurationSeconds segundos",
+                    isTablet = isTablet,
+                    onClick = { showSeekDurationDialog = true },
+                )
             }
         }
 
@@ -1298,6 +1307,17 @@ private fun PlaybackSettingsSection(
         )
     }
 
+    if (showSeekDurationDialog) {
+        SeekDurationDialog(
+            currentDurationMs = autoPlayPlayerSettings.seekDurationMs,
+            onDurationSelected = { ms ->
+                PlayerSettingsRepository.saveSeekDurationMs(ms)
+                showSeekDurationDialog = false
+            },
+            onDismiss = { showSeekDurationDialog = false }
+        )
+    }
+
     if (showIosHardwareDecoderDialog) {
         IosEnumSelectionDialog(
             title = stringResource(Res.string.settings_playback_ios_hw_decoder_dialog),
@@ -2112,6 +2132,98 @@ private fun HoldToSpeedValueDialog(
                             ) {
                                 Text(
                                     text = formatPlaybackSpeedLabel(speed),
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    color = MaterialTheme.colorScheme.onSurface,
+                                    modifier = Modifier.weight(1f),
+                                )
+                                Box(
+                                    modifier = Modifier.size(24.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    if (isSelected) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Check,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = stringResource(Res.string.settings_playback_dialog_close),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalMaterial3Api::class)
+private fun SeekDurationDialog(
+    currentDurationMs: Long,
+    onDurationSelected: (Long) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val options = listOf(
+        5000L to "5 segundos",
+        10000L to "10 segundos",
+        15000L to "15 segundos",
+        30000L to "30 segundos"
+    )
+
+    BasicAlertDialog(
+        onDismissRequest = onDismiss,
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surface,
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Text(
+                    text = "Duración del salto (Seek)",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.SemiBold,
+                )
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    options.forEach { (ms, label) ->
+                        val isSelected = ms == currentDurationMs
+                        val containerColor = if (isSelected) {
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+                        } else {
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.35f)
+                        }
+
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { onDurationSelected(ms) },
+                            shape = RoundedCornerShape(12.dp),
+                            color = containerColor,
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Text(
+                                    text = label,
                                     style = MaterialTheme.typography.bodyLarge,
                                     color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.weight(1f),

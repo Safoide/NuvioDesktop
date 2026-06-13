@@ -516,6 +516,7 @@ internal actual object PlayerSettingsStorage {
     private const val resizeModeKey = "resize_mode"
     private const val holdToSpeedEnabledKey = "hold_to_speed_enabled"
     private const val holdToSpeedValueKey = "hold_to_speed_value"
+    private const val seekDurationMsKey = "seek_duration_ms"
     private const val externalPlayerEnabledKey = "external_player_enabled"
     private const val externalPlayerIdKey = "external_player_id"
     private const val externalPlayerForwardSubtitlesKey = "external_player_forward_subtitles"
@@ -659,6 +660,12 @@ internal actual object PlayerSettingsStorage {
 
     actual fun saveHoldToSpeedValue(speed: Float) {
         saveFloat(holdToSpeedValueKey, speed)
+    }
+
+    actual fun loadSeekDurationMs(): Long? = loadInt(seekDurationMsKey)?.toLong()
+
+    actual fun saveSeekDurationMs(durationMs: Long) {
+        saveInt(seekDurationMsKey, durationMs.toInt())
     }
 
     actual fun loadExternalPlayerEnabled(): Boolean? = loadBoolean(externalPlayerEnabledKey)
@@ -1011,6 +1018,7 @@ internal actual object PlayerSettingsStorage {
         loadResizeMode()?.let { put(resizeModeKey, encodeSyncString(it)) }
         loadHoldToSpeedEnabled()?.let { put(holdToSpeedEnabledKey, encodeSyncBoolean(it)) }
         loadHoldToSpeedValue()?.let { put(holdToSpeedValueKey, encodeSyncFloat(it)) }
+        loadSeekDurationMs()?.let { put(seekDurationMsKey, encodeSyncInt(it.toInt())) }
         loadExternalPlayerEnabled()?.let { put(externalPlayerEnabledKey, encodeSyncBoolean(it)) }
         loadExternalPlayerId()?.let { put(externalPlayerIdKey, encodeSyncString(it)) }
         loadExternalPlayerForwardSubtitles()?.let { put(externalPlayerForwardSubtitlesKey, encodeSyncBoolean(it)) }
@@ -1076,6 +1084,7 @@ internal actual object PlayerSettingsStorage {
         payload.decodeSyncString(resizeModeKey)?.let(::saveResizeMode)
         payload.decodeSyncBoolean(holdToSpeedEnabledKey)?.let(::saveHoldToSpeedEnabled)
         payload.decodeSyncFloat(holdToSpeedValueKey)?.let(::saveHoldToSpeedValue)
+        payload.decodeSyncInt(seekDurationMsKey)?.let { saveSeekDurationMs(it.toLong()) }
         payload.decodeSyncBoolean(externalPlayerEnabledKey)?.let(::saveExternalPlayerEnabled)
         payload.decodeSyncString(externalPlayerIdKey)?.let(::saveExternalPlayerId)
         payload.decodeSyncBoolean(externalPlayerForwardSubtitlesKey)?.let(::saveExternalPlayerForwardSubtitles)

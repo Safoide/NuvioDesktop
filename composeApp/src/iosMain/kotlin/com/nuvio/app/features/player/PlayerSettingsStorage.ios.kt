@@ -41,6 +41,7 @@ actual object PlayerSettingsStorage {
     private const val addonSubtitleStartupModeKey = "addon_subtitle_startup_mode"
     private const val streamReuseLastLinkEnabledKey = "stream_reuse_last_link_enabled"
     private const val streamReuseLastLinkCacheHoursKey = "stream_reuse_last_link_cache_hours"
+    private const val seekDurationMsKey = "seek_duration_ms"
     private const val decoderPriorityKey = "decoder_priority"
     private const val mapDV7ToHevcKey = "map_dv7_to_hevc"
     private const val tunnelingEnabledKey = "tunneling_enabled"
@@ -801,6 +802,22 @@ actual object PlayerSettingsStorage {
 
     actual fun saveIosGamma(value: Int) {
         saveInt(iosGammaKey, value)
+    }
+
+    actual fun loadSeekDurationMs(): Long? = loadLong(seekDurationMsKey)
+
+    actual fun saveSeekDurationMs(durationMs: Long) {
+        saveLong(seekDurationMsKey, durationMs)
+    }
+
+    private fun loadLong(keyBase: String): Long? {
+        val defaults = NSUserDefaults.standardUserDefaults
+        val key = ProfileScopedKey.of(keyBase)
+        return if (defaults.objectForKey(key) != null) defaults.integerForKey(key) else null
+    }
+
+    private fun saveLong(keyBase: String, value: Long) {
+        NSUserDefaults.standardUserDefaults.setInteger(value, forKey = ProfileScopedKey.of(keyBase))
     }
 
     actual fun exportToSyncPayload(): JsonObject = buildJsonObject {

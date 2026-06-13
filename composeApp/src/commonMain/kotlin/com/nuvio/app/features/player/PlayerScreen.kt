@@ -321,6 +321,7 @@ fun PlayerScreen(
         var initialLoadCompleted by remember(activePlaybackIdentity) { mutableStateOf(false) }
         var speedBoostRestoreSpeed by remember(activePlaybackIdentity) { mutableStateOf<Float?>(null) }
         var isHoldToSpeedGestureActive by remember(activePlaybackIdentity) { mutableStateOf(false) }
+        val seekStepMs = playerSettingsUiState.seekDurationMs
         var initialSeekApplied by remember(
             activePlaybackIdentity,
             activeInitialPositionMs,
@@ -684,7 +685,7 @@ fun PlayerScreen(
         var useCustomSubtitles by remember { mutableStateOf(false) }
         var preferredAudioSelectionApplied by rememberSaveable(activePlaybackIdentity) { mutableStateOf(false) }
         var preferredSubtitleSelectionApplied by rememberSaveable(activePlaybackIdentity) { mutableStateOf(false) }
-        var activeSubtitleTab by remember { mutableStateOf(SubtitleTab.BuiltIn) }
+        var activeSubtitleTab by remember { mutableStateOf(SubtitleTab.Subtitles) }
         val subtitleStyle = playerSettingsUiState.subtitleStyle
         val addonsUiState by AddonRepository.uiState.collectAsStateWithLifecycle()
         val addonSubtitles by SubtitleRepository.addonSubtitles.collectAsStateWithLifecycle()
@@ -903,23 +904,55 @@ fun PlayerScreen(
                         targets = preferredSubtitleTargets,
                     )
                     if (preferredSubtitleIndex >= 0 && preferredSubtitleIndex != selectedSubtitleIndex) {
+                        // Built-in match found — use it
                         playerController?.selectSubtitleTrack(preferredSubtitleIndex)
                         selectedSubtitleIndex = preferredSubtitleIndex
                         selectedAddonSubtitleId = null
                         useCustomSubtitles = false
-                    } else if (
-                        preferredSubtitleIndex < 0 &&
-                        (subtitleStyle.useForcedSubtitles ||
-                            normalizeLanguageCode(playerSettingsUiState.preferredSubtitleLanguage) == SubtitleLanguageOption.FORCED)
-                    ) {
-                        if (selectedSubtitleIndex != -1 || subtitleTracks.any { it.isSelected }) {
-                            playerController?.selectSubtitleTrack(-1)
+                        preferredSubtitleSelectionApplied = true
+                    } else if (preferredSubtitleIndex < 0) {
+                        if (subtitleStyle.useForcedSubtitles ||
+                            normalizeLanguageCode(playerSettingsUiState.preferredSubtitleLanguage) == SubtitleLanguageOption.FORCED
+                        ) {
+                            // Forced mode, no match — disable
+                            if (selectedSubtitleIndex != -1 || subtitleTracks.any { it.isSelected }) {
+                                playerController?.selectSubtitleTrack(-1)
+                            }
+                            selectedSubtitleIndex = -1
+                            selectedAddonSubtitleId = null
+                            useCustomSubtitles = false
+                            preferredSubtitleSelectionApplied = true
+                        } else {
+                            // No built-in match — try addon subtitles for preferred then secondary language
+                            val addonMatch = preferredSubtitleTargets
+                                .firstNotNullOfOrNull { target ->
+                                    visibleAddonSubtitles.firstOrNull { addon ->
+                                        languageMatchesPreference(addon.language, target)
+                                    }
+                                }
+                            if (addonMatch != null) {
+                                // Addon match found
+                                selectedAddonSubtitleId = addonMatch.id
+                                useCustomSubtitles = true
+                                if (selectedSubtitleIndex != -1) {
+                                    playerController?.selectSubtitleTrack(-1)
+                                    selectedSubtitleIndex = -1
+                                }
+                            } else {
+                                // Nothing matched — select None
+                                if (selectedSubtitleIndex != -1 || subtitleTracks.any { it.isSelected }) {
+                                    playerController?.selectSubtitleTrack(-1)
+                                }
+                                selectedSubtitleIndex = -1
+                                selectedAddonSubtitleId = null
+                                useCustomSubtitles = false
+                            }
+                            preferredSubtitleSelectionApplied = true
                         }
-                        selectedSubtitleIndex = -1
-                        selectedAddonSubtitleId = null
-                        useCustomSubtitles = false
+                    } else {
+                        // preferredSubtitleIndex == selectedSubtitleIndex, already correct
+                        preferredSubtitleSelectionApplied = true
                     }
-                    preferredSubtitleSelectionApplied = true
                 }
             }
 
@@ -981,10 +1014,6 @@ fun PlayerScreen(
             if (!fullscreenController.isFullscreenSupported) return
             fullscreenController.toggleFullscreen()
             revealPlayerChrome()
-            scope.launch {
-                delay(50)
-                playerFocusRequester.requestFocus()
-            }
         }
 
         fun showSeekFeedback(direction: PlayerSeekDirection, amountMs: Long) {
@@ -1137,13 +1166,15 @@ fun PlayerScreen(
 
         fun handleDoubleTapSeek(direction: PlayerSeekDirection) {
             val currentPositionMs = playbackSnapshot.positionMs.coerceAtLeast(0L)
+            val stepMs = PlayerSettingsRepository.uiState.value.seekDurationMs
+
             val nextState = if (accumulatedSeekState?.direction == direction) {
-                accumulatedSeekState!!.copy(amountMs = accumulatedSeekState!!.amountMs + PlayerDoubleTapSeekStepMs)
+                accumulatedSeekState!!.copy(amountMs = accumulatedSeekState!!.amountMs + stepMs)
             } else {
                 PlayerAccumulatedSeekState(
                     direction = direction,
                     baselinePositionMs = currentPositionMs,
-                    amountMs = PlayerDoubleTapSeekStepMs,
+                    amountMs = stepMs
                 )
             }
             accumulatedSeekState = nextState
@@ -2520,8 +2551,8 @@ fun PlayerScreen(
             handlers = PlayerKeyboardShortcutHandlers(
                 toggleFullscreen = ::toggleFullscreen,
                 togglePlayback = ::togglePlayback,
-                seekForward = { seekBy(10_000L) },
-                seekBackward = { seekBy(-10_000L) },
+                seekForward = { seekBy(seekStepMs) },
+                seekBackward = { seekBy(-seekStepMs) },
                 volumeUp = { adjustVolume(0.05f) },
                 volumeDown = { adjustVolume(-0.05f) },
                 toggleMute = ::toggleMute,
@@ -2544,8 +2575,8 @@ fun PlayerScreen(
                         when (event.key) {
                             Key.F -> { toggleFullscreen(); true }
                             Key.Spacebar -> { togglePlayback(); true }
-                            Key.DirectionRight -> { seekBy(10_000L); true }
-                            Key.DirectionLeft -> { seekBy(-10_000L); true }
+                            Key.DirectionRight -> { seekBy(seekStepMs); true }
+                            Key.DirectionLeft -> { seekBy(-seekStepMs); true }
                             else -> false
                         }
                     } else {
@@ -2827,8 +2858,9 @@ fun PlayerScreen(
                     onFullscreenClick = ::toggleFullscreen,
                     onBack = onBackWithProgress,
                     onTogglePlayback = ::togglePlayback,
-                    onSeekBack = { seekBy(-10_000L) },
-                    onSeekForward = { seekBy(10_000L) },
+                    onSeekBack = { seekBy(-seekStepMs) },
+                    onSeekForward = { seekBy(seekStepMs) },
+                    seekDurationMs = seekStepMs,
                     onResizeModeClick = ::cycleResizeMode,
                     onSpeedClick = ::cyclePlaybackSpeed,
                     onVolumeChange = ::setPlayerVolume,
@@ -3060,6 +3092,9 @@ fun PlayerScreen(
                 addonSubtitles = visibleAddonSubtitles,
                 selectedAddonSubtitleId = selectedAddonSubtitleId,
                 isLoadingAddonSubtitles = isLoadingAddonSubtitles,
+                preferredSubtitleLanguage = playerSettingsUiState.preferredSubtitleLanguage,
+                secondaryPreferredSubtitleLanguage = playerSettingsUiState.secondaryPreferredSubtitleLanguage,
+                showOnlyPreferredLanguages = subtitleStyle.showOnlyPreferredLanguages,
                 subtitleStyle = subtitleStyle,
                 subtitleDelayMs = subtitleDelayMs,
                 selectedAddonSubtitle = selectedAddonSubtitle,

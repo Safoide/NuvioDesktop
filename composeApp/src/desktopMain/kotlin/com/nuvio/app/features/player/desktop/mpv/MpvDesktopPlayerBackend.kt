@@ -180,6 +180,15 @@ internal class MpvDesktopPlayerBackend private constructor(
             .onFailure { DesktopRuntimeLog.error("MPV resizeMode=$resizeMode failed", it) }
     }
 
+    private fun updateVideoSync(phase: DesktopPlayerPhase) {
+        val tuning = loadDesktopMpvVideoTuning()
+        val sync = when {
+            tuning.settings.interpolationEnabled && phase == DesktopPlayerPhase.Playing -> "display-resample"
+            else -> "audio"
+        }
+        runCatching { mpvHandle.setMpvRuntimeOption("video-sync", sync) }
+    }
+
     override fun releaseSoft() {
         if (stopped) return
         stopped = true
@@ -272,6 +281,7 @@ internal class MpvDesktopPlayerBackend private constructor(
                 updateDisplayWakeLock(mapped.phase)
                 stateFlow.value = mapped
                 applyPendingPlaybackHeavyTuning(mapped.phase)
+                updateVideoSync(mapped.phase)
                 DesktopRuntimeLog.info("[WP-STATE] phase=${mapped.phase} pos=${mapped.positionMs}ms dur=${mapped.durationMs}ms")
             }
         }.launchIn(scope)
@@ -760,7 +770,6 @@ internal class MpvDesktopPlayerBackend private constructor(
             val handle = mpvHandle
             val colorHex = style.textColor.toMpvColorString()
             val outline = if (style.outlineEnabled) 2.0 else 0.0
-            val subPos = 100 - style.bottomOffset
             runCatching {
                 val selectedTrack = handle.selectedSubtitleTrackDetails()
                 val useExternalSubtitleStyle = externalSubtitleActive || selectedTrack?.external == true
@@ -776,8 +785,13 @@ internal class MpvDesktopPlayerBackend private constructor(
                 handle.setMpvRuntimeOption("sub-color", colorHex)
                 handle.setMpvRuntimeOption("sub-border-size", outline)
                 handle.setMpvRuntimeOption("sub-font-size", style.fontSizeSp.toDouble() * 2)
-                handle.setMpvRuntimeOption("sub-pos", subPos)
+                handle.setMpvRuntimeOption("sub-pos", 100)
                 handle.setMpvRuntimeOption("sub-align-y", "bottom")
+                handle.setMpvRuntimeOption("sub-margin-y", style.bottomOffset * 6)
+
+                if (selectedTrack != null && reason != "select-built-in" && reason != "select-none") {
+                    runCatching { handle.command("sub-reload") }
+                }
 
                 DesktopRuntimeLog.info(
                     "MPV applySubtitleStyle selected=${selectedTrack?.toLogString() ?: "none"} " +
