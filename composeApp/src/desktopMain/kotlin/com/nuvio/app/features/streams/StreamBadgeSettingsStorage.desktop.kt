@@ -60,4 +60,11 @@ internal actual object StreamBadgeSettingsStorage {
     actual fun saveStreamBadgePlacement(placement: String) {
         DesktopPreferences.putString(preferencesName, ProfileScopedKey.of("stream_badge_placement"), placement)
     }
+
+    actual fun loadShowAddonLogo(): Boolean? =
+        DesktopPreferences.getBoolean(preferencesName, ProfileScopedKey.of("show_addon_logo"))
+
+    actual fun saveShowAddonLogo(enabled: Boolean) {
+        DesktopPreferences.putBoolean(preferencesName, ProfileScopedKey.of("show_addon_logo"), enabled)
+    }
 }

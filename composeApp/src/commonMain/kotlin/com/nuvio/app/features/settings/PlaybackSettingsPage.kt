@@ -93,7 +93,6 @@ internal fun LazyListScope.playbackSettingsContent(
     showLoadingOverlay: Boolean,
     holdToSpeedEnabled: Boolean,
     holdToSpeedValue: Float,
-    touchGesturesEnabled: Boolean,
     preferredAudioLanguage: String,
     secondaryPreferredAudioLanguage: String?,
     preferredSubtitleLanguage: String,
@@ -112,7 +111,6 @@ internal fun LazyListScope.playbackSettingsContent(
             showLoadingOverlay = showLoadingOverlay,
             holdToSpeedEnabled = holdToSpeedEnabled,
             holdToSpeedValue = holdToSpeedValue,
-            touchGesturesEnabled = touchGesturesEnabled,
             preferredAudioLanguage = preferredAudioLanguage,
             secondaryPreferredAudioLanguage = secondaryPreferredAudioLanguage,
             preferredSubtitleLanguage = preferredSubtitleLanguage,
@@ -247,7 +245,6 @@ private fun PlaybackSettingsSection(
     showLoadingOverlay: Boolean,
     holdToSpeedEnabled: Boolean,
     holdToSpeedValue: Float,
-    touchGesturesEnabled: Boolean,
     preferredAudioLanguage: String,
     secondaryPreferredAudioLanguage: String?,
     preferredSubtitleLanguage: String,
@@ -356,15 +353,6 @@ private fun PlaybackSettingsSection(
                         onCheckedChange = PlayerSettingsRepository::setExternalPlayerForwardSubtitles,
                     )
                 }
-                SettingsGroupDivider(isTablet = isTablet)
-                SettingsSwitchRow(
-                    title = stringResource(Res.string.settings_playback_touch_gestures),
-                    description = stringResource(Res.string.settings_playback_touch_gestures_description),
-                    checked = touchGesturesEnabled,
-                    enabled = !autoPlayPlayerSettings.externalPlayerEnabled,
-                    isTablet = isTablet,
-                    onCheckedChange = PlayerSettingsRepository::setTouchGesturesEnabled,
-                )
                 SettingsGroupDivider(isTablet = isTablet)
                 SettingsSwitchRow(
                     title = stringResource(Res.string.settings_playback_hold_to_speed),

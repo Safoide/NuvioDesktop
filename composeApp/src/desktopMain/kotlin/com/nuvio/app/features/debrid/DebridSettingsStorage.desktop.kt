@@ -219,4 +219,15 @@ actual object DebridSettingsStorage {
             else -> "debrid_${normalized}_api_key"
         }
     }
+
+    actual fun loadPendingDeviceAuthorization(providerId: String): String? =
+        DesktopPreferences.getString(preferencesName, ProfileScopedKey.of("pending_device_auth_$providerId"))
+
+    actual fun savePendingDeviceAuthorization(providerId: String, payload: String) {
+        DesktopPreferences.putString(preferencesName, ProfileScopedKey.of("pending_device_auth_$providerId"), payload)
+    }
+
+    actual fun clearPendingDeviceAuthorization(providerId: String) {
+        DesktopPreferences.remove(preferencesName, ProfileScopedKey.of("pending_device_auth_$providerId"))
+    }
 }
